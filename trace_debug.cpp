@@ -103,6 +103,10 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
   uint8_t Returned_Value = 0;
   uint32_t Temps;
 
+#if defined(ACTIVER_TRACES_UDP)
+  WiFiUDP udp;
+#endif
+
   // Test pour savoir si la trace a un niveau "remontable" ou non
   if (Test_Trace_Level(Type_Trace) != 0)
     return 2;
@@ -155,14 +159,10 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
   *P_Buffer = 0;
 
 #if defined(ACTIVER_TRACES_UDP)
-  {
-    WiFiUDP udp;
-
-    udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
-    udp.write(Buffer_TX_Trace, strlen((const char*) Buffer_TX_Trace));
-    udp.write((const uint8_t*) Txt_Donnees, strlen((const char*) Txt_Donnees));
-    udp.endPacket();
-  }
+  udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+  udp.write(Buffer_TX_Trace, strlen((const char*) Buffer_TX_Trace));
+  udp.write((const uint8_t*) Txt_Donnees, strlen((const char*) Txt_Donnees));
+//  udp.endPacket();
 #endif
 
   Send_String_UARTX((char* )Buffer_TX_Trace, Numero_UART);
@@ -180,9 +180,9 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
     {
 
 #if defined(ACTIVER_TRACES_UDP)
-      WiFiUDP udp;
-
-      udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+//      WiFiUDP udp;
+//
+//      udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
 
       udp.write((const uint8_t*) "    @@ (", strlen("    @@ ("));
       udp.write((const uint8_t*) i_ps8_nomFonction, strlen(i_ps8_nomFonction));
@@ -203,12 +203,15 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
 #if defined(ACTIVER_TRACES_UDP)
       udp.write((const uint8_t*) TempBuffer, strlen(TempBuffer));
       udp.write((const uint8_t*) "))", strlen("))"));
-      udp.endPacket();
 #endif
       delete[] TempBuffer;
     }
   }
   Send_String_UARTX("\n", Numero_UART);
+
+#if defined(ACTIVER_TRACES_UDP)
+  udp.endPacket();
+#endif
 
   return Returned_Value;
 }
