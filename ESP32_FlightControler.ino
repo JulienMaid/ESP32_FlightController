@@ -8,7 +8,8 @@
 #include "outils_wifi.h"
 #include "OTAUpdate.h"
 
-Ticker blinker;
+Ticker g_t_blinker;
+String g_t_MsgDemarrage("ESP32 Flight controller");
 
 //The setup function is called once at startup of the sketch
 void setup()
@@ -18,18 +19,21 @@ void setup()
   Serial.begin(115200);
   Serial.println();
 
-  blinker.attach(0.05, Inc_Timer);
+  g_t_blinker.attach(0.05, Inc_Timer);
 
   Init_RTC_Soft();
   Set_Max_Debug_Level(DBG1);
 
   l_b_WifiConnected = connecterWifi(0);
 
+  SEND_TRACE(INFO, g_t_MsgDemarrage.c_str());
+
   Send_Trace_Bool(INFO, "Connection Wifi", l_b_WifiConnected);
 
   if (l_b_WifiConnected == true)
   {
-    DemarrerServeurOTA("ESP32 Flight controller");
+    DemarrerServeurOTA(g_t_MsgDemarrage);
+    SEND_TRACE(INFO, "Démarrage Service OTA");
   }
 
   uint32_t Freq = getCpuFrequencyMhz();
