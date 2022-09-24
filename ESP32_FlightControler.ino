@@ -7,6 +7,7 @@
 #include "trace_debug.h"
 #include "outils_wifi.h"
 #include "OTAUpdate.h"
+#include "serveurUDP.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -48,6 +49,8 @@ void setup()
   Serial.print("APB Freq = ");
   Serial.print(Freq);
   Serial.println(" Hz");
+
+  initServeurUDP(4321);
 }
 
 // The loop function is called in an endless loop
