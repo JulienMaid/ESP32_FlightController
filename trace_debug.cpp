@@ -950,3 +950,17 @@ uint8_t Conv_NumToStr(uint32_t Num, char *String)
 
   return Nbre;
 }
+
+uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
+    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
+{
+  char ts8_BufferTx[200];
+  va_list argp;
+
+  va_start(argp, Txt_Donnees);
+  vsprintf(ts8_BufferTx, Txt_Donnees, argp);
+  va_end(argp);
+
+  return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
+      i_u16_numeroLigne);
+}

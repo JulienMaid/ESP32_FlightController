@@ -26,34 +26,26 @@ void setup()
 
   l_b_WifiConnected = connecterWifi(0);
 
-  SEND_TRACE(INFO, g_t_MsgDemarrage.c_str());
+  SEND_VTRACE(INFO, g_t_MsgDemarrage.c_str());
 
-  Send_Trace_Bool(INFO, "Connection Wifi", l_b_WifiConnected);
+  SEND_VTRACE(INFO, "Connection Wifi: %d", l_b_WifiConnected);
 
   if (l_b_WifiConnected == true)
   {
     DemarrerServeurOTA(g_t_MsgDemarrage);
-    SEND_TRACE(INFO, "Démarrage Service OTA");
+    SEND_VTRACE(INFO, "Démarrage Service OTA");
   }
 
-  uint32_t Freq = getCpuFrequencyMhz();
-  Serial.print("CPU Freq = ");
-  Serial.print(Freq);
-  Serial.println(" MHz");
-  Freq = getXtalFrequencyMhz();
-  Serial.print("XTAL Freq = ");
-  Serial.print(Freq);
-  Serial.println(" MHz");
-  Freq = getApbFrequency();
-  Serial.print("APB Freq = ");
-  Serial.print(Freq);
-  Serial.println(" Hz");
+  SEND_VTRACE(INFO, "CPU Freq = %d MHz", getCpuFrequencyMhz());
+  SEND_VTRACE(INFO, "XTAL Freq = %d MHz", getXtalFrequencyMhz());
 }
 
 // The loop function is called in an endless loop
 void loop()
 {
+  uint8_t var = 8;
   delay(2000);
 
-  SEND_TRACE(INFO, "Test");
+  SEND_VTRACE(INFO, "Test2");
+
 }
