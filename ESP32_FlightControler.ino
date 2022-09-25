@@ -34,11 +34,12 @@ void setup()
   if (l_b_WifiConnected == true)
   {
     DemarrerServeurOTA(g_t_MsgDemarrage);
-    SEND_VTRACE(INFO, "Démarrage Service OTA");
+    SEND_VTRACE(INFO, "Demarrage Service OTA");
   }
 
-  SEND_VTRACE(INFO, "CPU Freq = %d MHz", getCpuFrequencyMhz());
-  SEND_VTRACE(INFO, "XTAL Freq = %d MHz", getXtalFrequencyMhz());
+  SEND_VTRACE(INFO, "Frequence CPU = %d MHz", getCpuFrequencyMhz());
+
+  initServeurUDP(4321);
 }
 
 // The loop function is called in an endless loop
@@ -48,5 +49,6 @@ void loop()
   delay(2000);
 
   SEND_VTRACE(INFO, "Test2");
+  Serial.println(xPortGetCoreID());
 
 }

@@ -8,7 +8,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <AsyncUDP.h>
 
 void initServeurUDP(uint16_t i_u16_portEcoute);
+
+void onPacketCallBack(AsyncUDPPacket packet);
 
 void theadServeurUDP(void *parametres);
