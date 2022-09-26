@@ -10,15 +10,15 @@
 
 #include <stdint.h>
 
-class controleurMoteurs
+class ControleurMoteurs
 {
 public:
-  controleurMoteurs();
-  virtual ~controleurMoteurs();
-  controleurMoteurs(const controleurMoteurs &other) = delete;
-  controleurMoteurs& operator=(controleurMoteurs &&other) = delete;
-  controleurMoteurs& operator=(const controleurMoteurs &other) = delete;
-  controleurMoteurs(controleurMoteurs &&other) = delete;
+  ControleurMoteurs();
+  virtual ~ControleurMoteurs();
+  ControleurMoteurs(const ControleurMoteurs &other) = delete;
+  ControleurMoteurs& operator=(ControleurMoteurs &&other) = delete;
+  ControleurMoteurs& operator=(const ControleurMoteurs &other) = delete;
+  ControleurMoteurs(ControleurMoteurs &&other) = delete;
 
   virtual void ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
       uint16_t u16_MoteurArG, uint16_t u16_MoteurArD) = 0;

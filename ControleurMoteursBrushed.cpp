@@ -6,20 +6,20 @@
  */
 
 #include <Arduino.h>
-#include "controleurMoteursBrushed.h"
+#include "ControleurMoteursBrushed.h"
 
-controleurMoteursBrushed::controleurMoteursBrushed()
+ControleurMoteursBrushed::ControleurMoteursBrushed()
 {
   // TODO Auto-generated constructor stub
 
 }
 
-controleurMoteursBrushed::~controleurMoteursBrushed()
+ControleurMoteursBrushed::~ControleurMoteursBrushed()
 {
   // TODO Auto-generated destructor stub
 }
 
-void controleurMoteursBrushed::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
+void ControleurMoteursBrushed::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
     uint16_t u16_MoteurArG, uint16_t u16_MoteurArD)
 {
   ledcSetup(CANAL_AVG, FREQUENCE_PWM, RESOLUTION_PWM);
@@ -39,7 +39,7 @@ void controleurMoteursBrushed::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_
 
 }
 
-void controleurMoteursBrushed::FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
+void ControleurMoteursBrushed::FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
     uint16_t u16_ConsigneMoteurAvD, uint16_t u16_ConsigneMoteurArG, uint16_t u16_ConsigneMoteurArD)
 {
   uint16_t u16_RapportCyclique_AvG = 0;

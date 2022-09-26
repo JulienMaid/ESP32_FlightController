@@ -8,10 +8,10 @@
 #ifndef CONTROLEURMOTEURSBRUSHLESS_H_
 #define CONTROLEURMOTEURSBRUSHLESS_H_
 
-#include "controleurMoteurs.h"
+#include "ControleurMoteurs.h"
 
-#define FREQUENCE_PWM       250
-#define RESOLUTION_PWM      10
+#define FREQUENCE_PWM_BRUSHLESS       250
+#define RESOLUTION_PWM_BRUSHLESS      10
 #define CANAL_AVG           0
 #define CANAL_AVD           1
 #define CANAL_ARG           2
@@ -20,15 +20,15 @@
 #define RAPPORT_CYCLIQUE_0  256
 #define RAPPORT_CYCLIQUE_100 512
 
-class controleurMoteursBrushless: public controleurMoteurs
+class ControleurMoteursBrushless: public ControleurMoteurs
 {
 public:
-  controleurMoteursBrushless();
-  virtual ~controleurMoteursBrushless();
-  controleurMoteursBrushless(const controleurMoteursBrushless &other) = delete;
-  controleurMoteursBrushless(controleurMoteursBrushless &&other) = delete;
-  controleurMoteursBrushless& operator=(const controleurMoteursBrushless &other) = delete;
-  controleurMoteursBrushless& operator=(controleurMoteursBrushless &&other) = delete;
+  ControleurMoteursBrushless();
+  virtual ~ControleurMoteursBrushless();
+  ControleurMoteursBrushless(const ControleurMoteursBrushless &other) = delete;
+  ControleurMoteursBrushless(ControleurMoteursBrushless &&other) = delete;
+  ControleurMoteursBrushless& operator=(const ControleurMoteursBrushless &other) = delete;
+  ControleurMoteursBrushless& operator=(ControleurMoteursBrushless &&other) = delete;
 
   virtual void ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
       uint16_t u16_MoteurArG, uint16_t u16_MoteurArD) override;

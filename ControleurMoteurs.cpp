@@ -5,15 +5,15 @@
  *      Author: julien
  */
 
-#include "controleurMoteurs.h"
+#include "ControleurMoteurs.h"
 
-controleurMoteurs::controleurMoteurs()
+ControleurMoteurs::ControleurMoteurs()
 {
   // TODO Auto-generated constructor stub
 
 }
 
-controleurMoteurs::~controleurMoteurs()
+ControleurMoteurs::~ControleurMoteurs()
 {
   // TODO Auto-generated destructor stub
 }

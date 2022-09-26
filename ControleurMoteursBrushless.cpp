@@ -5,27 +5,27 @@
  *      Author: julien
  */
 
-#include "controleurMoteursBrushless.h"
 #include <Arduino.h>
+#include "ControleurMoteursBrushless.h"
 
-controleurMoteursBrushless::controleurMoteursBrushless()
+ControleurMoteursBrushless::ControleurMoteursBrushless()
 {
   // TODO Auto-generated constructor stub
 
 }
 
-controleurMoteursBrushless::~controleurMoteursBrushless()
+ControleurMoteursBrushless::~ControleurMoteursBrushless()
 {
   // TODO Auto-generated destructor stub
 }
 
-void controleurMoteursBrushless::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
+void ControleurMoteursBrushless::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
     uint16_t u16_MoteurArG, uint16_t u16_MoteurArD)
 {
-  ledcSetup(CANAL_AVG, FREQUENCE_PWM, RESOLUTION_PWM);
-  ledcSetup(CANAL_AVD, FREQUENCE_PWM, RESOLUTION_PWM);
-  ledcSetup(CANAL_ARG, FREQUENCE_PWM, RESOLUTION_PWM);
-  ledcSetup(CANAL_ARD, FREQUENCE_PWM, RESOLUTION_PWM);
+  ledcSetup(CANAL_AVG, FREQUENCE_PWM_BRUSHLESS, RESOLUTION_PWM_BRUSHLESS);
+  ledcSetup(CANAL_AVD, FREQUENCE_PWM_BRUSHLESS, RESOLUTION_PWM_BRUSHLESS);
+  ledcSetup(CANAL_ARG, FREQUENCE_PWM_BRUSHLESS, RESOLUTION_PWM_BRUSHLESS);
+  ledcSetup(CANAL_ARD, FREQUENCE_PWM_BRUSHLESS, RESOLUTION_PWM_BRUSHLESS);
 
   ledcAttachPin(u16_MoteurAvG, CANAL_AVG);
   ledcAttachPin(u16_MoteurAvD, CANAL_AVD);
@@ -39,7 +39,7 @@ void controleurMoteursBrushless::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint1
 
 }
 
-void controleurMoteursBrushless::FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
+void ControleurMoteursBrushless::FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
     uint16_t u16_ConsigneMoteurAvD, uint16_t u16_ConsigneMoteurArG, uint16_t u16_ConsigneMoteurArD)
 {
   uint16_t u16_RapportCyclique_AvG = 0;
@@ -48,13 +48,13 @@ void controleurMoteursBrushless::FixerNouvellesConsigne(uint16_t u16_ConsigneMot
   uint16_t u16_RapportCyclique_ArD = 0;
 
   u16_RapportCyclique_AvG = map(u16_ConsigneMoteurAvG, 0, 100, RAPPORT_CYCLIQUE_0,
-      RAPPORT_CYCLIQUE_100);
+  RAPPORT_CYCLIQUE_100);
   u16_RapportCyclique_AvD = map(u16_ConsigneMoteurAvD, 0, 100, RAPPORT_CYCLIQUE_0,
-      RAPPORT_CYCLIQUE_100);
+  RAPPORT_CYCLIQUE_100);
   u16_RapportCyclique_ArG = map(u16_ConsigneMoteurAvG, 0, 100, RAPPORT_CYCLIQUE_0,
-      RAPPORT_CYCLIQUE_100);
+  RAPPORT_CYCLIQUE_100);
   u16_RapportCyclique_ArD = map(u16_ConsigneMoteurAvG, 0, 100, RAPPORT_CYCLIQUE_0,
-      RAPPORT_CYCLIQUE_100);
+  RAPPORT_CYCLIQUE_100);
 
   ledcWrite(CANAL_AVG, u16_RapportCyclique_AvG);
   ledcWrite(CANAL_AVD, u16_RapportCyclique_AvD);
