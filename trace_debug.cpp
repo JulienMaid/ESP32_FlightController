@@ -24,6 +24,8 @@
 
 #define ACTIVER_TRACES_UDP
 
+#define DESACTIVER_TRACE_SERIE
+
 //************************************
 //* Includes lies a l'implementation *
 //************************************
@@ -44,7 +46,11 @@
 #define PORT_DEST_UDP 1234
 #endif
 
+#if defined(DESACTIVER_TRACE_SERIE)
+#define Send_String_UARTX(a,b) {}
+#else
 #define Send_String_UARTX(a,b) Serial.print(a)
+#endif
 
 //*********************
 //* Variables privees *
@@ -180,10 +186,6 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
     {
 
 #if defined(ACTIVER_TRACES_UDP)
-//      WiFiUDP udp;
-//
-//      udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
-
       udp.write((const uint8_t*) "    @@ (", strlen("    @@ ("));
       udp.write((const uint8_t*) i_ps8_nomFonction, strlen(i_ps8_nomFonction));
       udp.write((const uint8_t*) " -> ", strlen(" -> "));
