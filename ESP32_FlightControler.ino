@@ -7,6 +7,7 @@
 #include "trace_debug.h"
 #include "outils_wifi.h"
 #include "OTAUpdate.h"
+#include "serveurUDP.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -33,19 +34,44 @@ void setup()
   if (l_b_WifiConnected == true)
   {
     DemarrerServeurOTA(g_t_MsgDemarrage);
-    SEND_VTRACE(INFO, "Démarrage Service OTA");
+    SEND_VTRACE(INFO, "Demarrage Service OTA");
   }
 
-  SEND_VTRACE(INFO, "CPU Freq = %d MHz", getCpuFrequencyMhz());
-  SEND_VTRACE(INFO, "XTAL Freq = %d MHz", getXtalFrequencyMhz());
+  SEND_VTRACE(INFO, "Frequence CPU = %d MHz", getCpuFrequencyMhz());
+
+  initServeurUDP(4321);
 }
 
 // The loop function is called in an endless loop
 void loop()
 {
+  std::string *l_pt_stringRxUdp = NULL;
+
   uint8_t var = 8;
+
+  if (xQueueReceive(g_pt_queue, &l_pt_stringRxUdp, 0) == pdTRUE)
+  {
+    std::string l_t_localMsg = *l_pt_stringRxUdp;
+    delete l_pt_stringRxUdp;
+
+    SEND_VTRACE(INFO, "Core %d; RX dans loop: %s", xPortGetCoreID(), l_t_localMsg.c_str());
+
+    if (l_t_localMsg == "OFF")
+    {
+      SEND_VTRACE(INFO, "Moteurs OFF");
+    }
+    else if (l_t_localMsg >= "ON")
+    {
+
+      uint16_t u16_Val = 0;
+      sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
+
+      SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
+    }
+
+  }
+
   delay(2000);
 
-  SEND_VTRACE(INFO, "Test2");
-
+  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
 }
