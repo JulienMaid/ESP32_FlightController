@@ -45,10 +45,33 @@ void setup()
 // The loop function is called in an endless loop
 void loop()
 {
+  std::string *l_pt_stringRxUdp = NULL;
+
   uint8_t var = 8;
+
+  if (xQueueReceive(g_pt_queue, &l_pt_stringRxUdp, 0) == pdTRUE)
+  {
+    std::string l_t_localMsg = *l_pt_stringRxUdp;
+    delete l_pt_stringRxUdp;
+
+    SEND_VTRACE(INFO, "Core %d; RX dans loop: %s", xPortGetCoreID(), l_t_localMsg.c_str());
+
+    if (l_t_localMsg == "OFF")
+    {
+      SEND_VTRACE(INFO, "Moteurs OFF");
+    }
+    else if (l_t_localMsg >= "ON")
+    {
+
+      uint16_t u16_Val = 0;
+      sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
+
+      SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
+    }
+
+  }
+
   delay(2000);
 
-  SEND_VTRACE(INFO, "Test2");
-  Serial.println(xPortGetCoreID());
-
+  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
 }

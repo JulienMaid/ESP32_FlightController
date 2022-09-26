@@ -10,7 +10,9 @@
 #include <stdint.h>
 #include <AsyncUDP.h>
 
-void initServeurUDP(uint16_t i_u16_portEcoute);
+extern QueueHandle_t g_pt_queue;
+
+uint8_t initServeurUDP(uint16_t i_u16_portEcoute);
 
 void onPacketCallBack(AsyncUDPPacket packet);
 
