@@ -8,9 +8,12 @@
 #include "outils_wifi.h"
 #include "OTAUpdate.h"
 #include "serveurUDP.h"
+#include "controleurMoteursFactory.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
+
+ControleurMoteurs *g_pt_ControleurMoteurs = nullptr;
 
 //The setup function is called once at startup of the sketch
 void setup()
@@ -40,6 +43,10 @@ void setup()
   SEND_VTRACE(INFO, "Frequence CPU = %d MHz", getCpuFrequencyMhz());
 
   initServeurUDP(4321);
+
+  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
+      e_typeMoteur_t::MOTEUR_BRUSHLESS);
+
 }
 
 // The loop function is called in an endless loop

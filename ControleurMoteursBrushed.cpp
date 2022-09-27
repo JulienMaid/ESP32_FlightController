@@ -20,12 +20,13 @@ ControleurMoteursBrushed::~ControleurMoteursBrushed()
 }
 
 void ControleurMoteursBrushed::ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
-    uint16_t u16_MoteurArG, uint16_t u16_MoteurArD)
+    uint16_t u16_MoteurArG, uint16_t u16_MoteurArD, uint32_t i_u32_frequencePWM,
+    uint8_t i_u8_resolutionPWM)
 {
-  ledcSetup(CANAL_AVG, FREQUENCE_PWM, RESOLUTION_PWM);
-  ledcSetup(CANAL_AVD, FREQUENCE_PWM, RESOLUTION_PWM);
-  ledcSetup(CANAL_ARG, FREQUENCE_PWM, RESOLUTION_PWM);
-  ledcSetup(CANAL_ARD, FREQUENCE_PWM, RESOLUTION_PWM);
+  ledcSetup(CANAL_AVG, i_u32_frequencePWM, i_u8_resolutionPWM);
+  ledcSetup(CANAL_AVD, i_u32_frequencePWM, i_u8_resolutionPWM);
+  ledcSetup(CANAL_ARG, i_u32_frequencePWM, i_u8_resolutionPWM);
+  ledcSetup(CANAL_ARD, i_u32_frequencePWM, i_u8_resolutionPWM);
 
   ledcAttachPin(u16_MoteurAvG, CANAL_AVG);
   ledcAttachPin(u16_MoteurAvD, CANAL_AVD);

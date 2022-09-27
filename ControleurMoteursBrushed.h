@@ -10,8 +10,6 @@
 
 #include "ControleurMoteurs.h"
 
-#define FREQUENCE_PWM       5000
-#define RESOLUTION_PWM      10
 #define CANAL_AVG           0
 #define CANAL_AVD           1
 #define CANAL_ARG           2
@@ -28,7 +26,8 @@ public:
   ControleurMoteursBrushed& operator=(ControleurMoteursBrushed &&other) = delete;
 
   virtual void ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
-      uint16_t u16_MoteurArG, uint16_t u16_MoteurArD) override;
+      uint16_t u16_MoteurArG, uint16_t u16_MoteurArD, uint32_t i_u32_frequencePWM,
+      uint8_t i_u8_resolutionPWM) override;
 
   virtual void FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
       uint16_t u16_ConsigneMoteurAvD, uint16_t u16_ConsigneMoteurArG,
