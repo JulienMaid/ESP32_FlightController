@@ -28,13 +28,15 @@ public:
   ControleurMoteursBrushless& operator=(const ControleurMoteursBrushless &other) = delete;
   ControleurMoteursBrushless& operator=(ControleurMoteursBrushless &&other) = delete;
 
-  virtual void ConfigurerMoteurs(uint16_t u16_MoteurAvG, uint16_t u16_MoteurAvD,
-      uint16_t u16_MoteurArG, uint16_t u16_MoteurArD, uint32_t i_u32_frequencePWM,
+  virtual void FixerNouvellesConsigne(uint16_t i_u16_ConsigneMoteurAvG,
+      uint16_t i_u16_ConsigneMoteurAvD, uint16_t i_u16_ConsigneMoteurArG,
+      uint16_t i_u16_ConsigneMoteurArD) override;
+
+  virtual void ConfigurerMoteurs(uint8_t i_u8_MoteurAvG, uint8_t i_u8_MoteurAvD,
+      uint8_t i_u8_MoteurArG, uint8_t i_u8_MoteurArD, uint32_t i_u32_frequencePWM,
       uint8_t i_u8_resolutionPWM) override;
 
-  virtual void FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
-      uint16_t u16_ConsigneMoteurAvD, uint16_t u16_ConsigneMoteurArG,
-      uint16_t u16_ConsigneMoteurArD) override;
+protected:
 
 };
 

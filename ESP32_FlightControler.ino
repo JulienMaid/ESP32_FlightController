@@ -44,8 +44,11 @@ void setup()
 
   initServeurUDP(4321);
 
+//  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
+//      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
+
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-      e_typeMoteur_t::MOTEUR_BRUSHLESS);
+      e_typeMoteur_t::MOTEUR_BRUSHED, 2, 4, 16, 17);
 
 }
 
@@ -74,11 +77,13 @@ void loop()
       sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
 
       SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
+
+      g_pt_ControleurMoteurs->FixerNouvellesConsigne(20, 40, 60, 80);
     }
 
   }
 
-  delay(2000);
+  delay(100);
 
-  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
+//  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
 }
