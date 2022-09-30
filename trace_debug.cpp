@@ -24,7 +24,7 @@
 
 #define ACTIVER_TRACES_UDP
 
-#define DESACTIVER_TRACE_SERIE
+//#define DESACTIVER_TRACE_SERIE
 
 //************************************
 //* Includes lies a l'implementation *
@@ -72,6 +72,8 @@ const char Txt_Timer_Event_FinTop[] = "Fin Top!";
 const char Txt_Timer_Event_Delete[] = "Deleted";
 const char Txt_Timer_Event_SetValue[] = "SetValue";
 
+QueueHandle_t g_pt_queueTraces;
+
 //********************************
 //* Implementation des fonctions *
 //********************************
@@ -81,6 +83,8 @@ void Init_Trace_Debug(void)
   Init_RTC_Soft();
 
   Serial.begin(115200);
+
+  g_pt_queueTraces = xQueueCreate(10, sizeof(std::string*));
 }
 
 const char* Get_Text_Type_Trace(type_trace_t Type_Trace)
@@ -965,4 +969,57 @@ uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_
 
   return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
       i_u16_numeroLigne);
+}
+
+uint8_t Send_VTrace2(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
+    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
+{
+  char ts8_BufferTx[200];
+  char ts8_BufferTxString[300];
+  va_list argp;
+  uint32_t u32_Temps;
+  uint32_t u32_TimeInt;
+  uint8_t u8_TimeFrac;
+  std::string *l_pt_StringTxt;
+
+  if (Horodatage == true)
+  {
+    u32_Temps = Get_Time();
+
+    u32_TimeInt = u32_Temps / 10;
+    u8_TimeFrac = u32_Temps - (10 * u32_TimeInt);
+  }
+
+  va_start(argp, Txt_Donnees);
+  vsprintf(ts8_BufferTx, Txt_Donnees, argp);
+  va_end(argp);
+
+  sprintf(ts8_BufferTxString, "%u.%us: %s - %s    @@ (%s -> %s(l.%u))", u32_TimeInt, u8_TimeFrac,
+      Get_Text_Type_Trace(Type_Trace), ts8_BufferTx, i_ps8_nomFonction, i_ps8_nomFichier,
+      i_u16_numeroLigne);
+
+  l_pt_StringTxt = new std::string(ts8_BufferTxString);
+
+  xQueueSend(g_pt_queueTraces, &l_pt_StringTxt, 0);
+
+//  return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
+//      i_u16_numeroLigne);
+
+  return 0;
+}
+
+void ThreadTxTrace(void)
+{
+  std::string *l_pt_stringRxUdp = NULL;
+
+  while (1)
+  {
+    if (xQueueReceive(g_pt_queueTraces, &l_pt_stringRxUdp, portMAX_DELAY) == pdTRUE)
+    {
+      std::string l_t_localMsg = *l_pt_stringRxUdp;
+      delete l_pt_stringRxUdp;
+
+      Serial.println(l_t_localMsg.c_str());
+    }
+  }
 }

@@ -127,6 +127,9 @@ void Init_Trace_Debug(void);
 uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
     const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...);
 
+uint8_t Send_VTrace2(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
+    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...);
+
 /**
  * @brief Envoi une trace sur l'UART
  * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
