@@ -80,11 +80,17 @@ QueueHandle_t g_pt_queueTraces;
 
 void Init_Trace_Debug(void)
 {
+  BaseType_t xReturned;
+  TaskHandle_t xHandle = NULL;
+
   Init_RTC_Soft();
 
   Serial.begin(115200);
 
   g_pt_queueTraces = xQueueCreate(10, sizeof(std::string*));
+
+  xTaskCreatePinnedToCore(ThreadTxTrace, "ThreadTxTrace", 4000, NULL, 2, &xHandle, 0);
+
 }
 
 const char* Get_Text_Type_Trace(type_trace_t Type_Trace)
@@ -957,21 +963,21 @@ uint8_t Conv_NumToStr(uint32_t Num, char *String)
   return Nbre;
 }
 
+//uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
+//    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
+//{
+//  char ts8_BufferTx[200];
+//  va_list argp;
+//
+//  va_start(argp, Txt_Donnees);
+//  vsprintf(ts8_BufferTx, Txt_Donnees, argp);
+//  va_end(argp);
+//
+//  return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
+//      i_u16_numeroLigne);
+//}
+
 uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
-    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
-{
-  char ts8_BufferTx[200];
-  va_list argp;
-
-  va_start(argp, Txt_Donnees);
-  vsprintf(ts8_BufferTx, Txt_Donnees, argp);
-  va_end(argp);
-
-  return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
-      i_u16_numeroLigne);
-}
-
-uint8_t Send_VTrace2(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
     const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
 {
   char ts8_BufferTx[200];
@@ -1000,17 +1006,21 @@ uint8_t Send_VTrace2(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8
 
   l_pt_StringTxt = new std::string(ts8_BufferTxString);
 
-  xQueueSend(g_pt_queueTraces, &l_pt_StringTxt, 0);
+  if (xQueueSend(g_pt_queueTraces, &l_pt_StringTxt, 0) == pdTRUE)
+  {
+    return 0;
+  }
 
-//  return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
-//      i_u16_numeroLigne);
-
-  return 0;
+  return 1;
 }
 
-void ThreadTxTrace(void)
+void ThreadTxTrace(void *Parametre)
 {
   std::string *l_pt_stringRxUdp = NULL;
+
+  (void) Parametre;
+
+  Serial.println("Thread Tx Trace Demarre");
 
   while (1)
   {
@@ -1019,7 +1029,18 @@ void ThreadTxTrace(void)
       std::string l_t_localMsg = *l_pt_stringRxUdp;
       delete l_pt_stringRxUdp;
 
+#if defined(ACTIVER_TRACES_UDP)
+      WiFiUDP l_t_udp;
+
+      l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+      l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+      l_t_udp.endPacket();
+#endif
+
+#if !defined(DESACTIVER_TRACE_SERIE)
       Serial.println(l_t_localMsg.c_str());
+#endif
+
     }
   }
 }

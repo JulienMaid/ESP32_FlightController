@@ -118,6 +118,9 @@ void Init_Trace_Debug(void);
 #define SEND_VTRACE(typeTrace, TxtDonnees, ...)  \
     Send_VTrace((typeTrace), true, __FILENAME__, __FUNCTION__, __LINE__, (TxtDonnees), ##__VA_ARGS__)
 
+#define SEND_VTRACE2(typeTrace, TxtDonnees, ...)  \
+    Send_VTrace2((typeTrace), true, __FILENAME__, __FUNCTION__, __LINE__, (TxtDonnees), ##__VA_ARGS__)
+
 #define SEND_TRACE_NUM(typeTrace, TxtDonnees, Num)  \
     Send_Trace_Num((typeTrace), (TxtDonnees), (Num), true, __FILENAME__, __FUNCTION__, __LINE__)
 
@@ -268,10 +271,6 @@ const char* Get_Text_Type_Trace(type_trace_t Type_Trace);
  */
 uint8_t Conv_NumToStr(uint32_t Num, char *String);
 
-#ifdef TRACE_DEBUG_C
-
-#else
-
-#endif
+void ThreadTxTrace(void *Parametre);
 
 #endif /* TRACE_DEBUG_H */

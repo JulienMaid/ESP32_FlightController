@@ -20,12 +20,10 @@ void setup()
 {
   bool l_b_WifiConnected = false;
 
-  Serial.begin(115200);
-  Serial.println();
-
+  // initialisation du Timer matériel pour le module TimerSW
   g_t_blinker.attach(0.05, Inc_Timer);
 
-  Init_RTC_Soft();
+  Init_Trace_Debug();
   Set_Max_Debug_Level(DBG1);
 
   l_b_WifiConnected = connecterWifi(0);
@@ -80,7 +78,6 @@ void loop()
 
       g_pt_ControleurMoteurs->FixerNouvellesConsigne(20, 40, 60, 80);
     }
-
   }
 
   delay(100);
