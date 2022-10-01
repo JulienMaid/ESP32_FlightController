@@ -31,6 +31,8 @@ void ISR_ImpulsionCmdVoie2(void);
 void ISR_ImpulsionCmdVoie3(void);
 void ISR_ImpulsionCmdVoie4(void);
 
+void InitPortCmd(void);
+
 void GestionPortCmd(e_NumeroVoie_t i_e_NumeroVoie);
 
 void LecturePortCmd(void);

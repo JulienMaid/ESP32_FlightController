@@ -9,6 +9,7 @@
 #include "OTAUpdate.h"
 #include "serveurUDP.h"
 #include "controleurMoteursFactory.h"
+#include "LecturePulseCmd.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -47,6 +48,8 @@ void setup()
 
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
       e_typeMoteur_t::MOTEUR_BRUSHED, 2, 4, 16, 17);
+
+  InitPortCmd();
 
 }
 

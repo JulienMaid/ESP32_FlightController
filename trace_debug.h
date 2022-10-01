@@ -84,10 +84,11 @@ struct Trace_Methodes
 
 #ifdef TRACE_DEBUG_C
 /// @brief Definition des textes des types de trace possibles
-Txt_Type_Trace_t Table_Type_Trace[10] =
+Txt_Type_Trace_t Table_Type_Trace[11] =
 {
   { NONE, Txt_None},
   { ERROR, Txt_Error},
+  { WARNING, Txt_Warning},
   { INFO, Txt_Info},
   { TEST_SECU_RESULTS, Txt_Tst_Secu_Results},
   { DBG1, Txt_Debug1},

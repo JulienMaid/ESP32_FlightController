@@ -577,7 +577,7 @@ void ThreadTxTrace(void *Parametre)
       if (u8_retourFct != 1)
       {
         // Si l'envoie ne s'estpas bien passé, on attend quelques ticks et on retente une 2nde fois
-        vTaskDelay(10);
+        vTaskDelay(100);
         const unsigned char tu8_buff[] = "2nd...";
 
         l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);

@@ -20,23 +20,13 @@
 ///                                                                                          <br>
 ///==========================================================================================<br>
 
-
 #ifndef DEF_DEBUG_TYPE_H_
 #define DEF_DEBUG_TYPE_H_
 
 // Definition des niveaux possibles de traces
 typedef enum def_type_trace
 {
-  NONE = 0,
-  ERROR,
-  INFO,
-  TEST_SECU_RESULTS,
-  DBG1,
-  DBG2,
-  DBG3,
-  DBG4,
-  DBGX = 0xfe,
-  ALL = 0xff
+  NONE = 0, ERROR, WARNING, INFO, TEST_SECU_RESULTS, DBG1, DBG2, DBG3, DBG4, DBGX = 0xfe, ALL = 0xff
 } type_trace_t;
 
 // Declaration de #define pour la retro-compatibilite avec les versions precedentes
@@ -58,6 +48,5 @@ typedef enum def_type_timer
   TIMER_DELETE,
   TIMER_SETVALUE
 } type_timer_t;
-
 
 #endif /* DEF_DEBUG_TYPE_H_ */
