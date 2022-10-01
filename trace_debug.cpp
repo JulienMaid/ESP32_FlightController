@@ -568,10 +568,24 @@ void ThreadTxTrace(void *Parametre)
 
 #if defined(ACTIVER_TRACES_UDP)
       WiFiUDP l_t_udp;
+      uint8_t u8_retourFct;
 
       l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
       l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
-      l_t_udp.endPacket();
+      u8_retourFct = l_t_udp.endPacket();
+
+      if (u8_retourFct != 1)
+      {
+        // Si l'envoie ne s'estpas bien passé, on attend quelques ticks et on retente une 2nde fois
+        vTaskDelay(10);
+        const unsigned char tu8_buff[] = "2nd...";
+
+        l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+        l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
+        l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+        l_t_udp.endPacket();
+      }
+
 #endif
 
 #if !defined(DESACTIVER_TRACE_SERIE)
