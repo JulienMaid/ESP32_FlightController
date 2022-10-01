@@ -24,7 +24,7 @@
 
 #define ACTIVER_TRACES_UDP
 
-#define DESACTIVER_TRACE_SERIE
+//#define DESACTIVER_TRACE_SERIE
 
 //************************************
 //* Includes lies a l'implementation *
@@ -72,15 +72,25 @@ const char Txt_Timer_Event_FinTop[] = "Fin Top!";
 const char Txt_Timer_Event_Delete[] = "Deleted";
 const char Txt_Timer_Event_SetValue[] = "SetValue";
 
+QueueHandle_t g_pt_queueTraces;
+
 //********************************
 //* Implementation des fonctions *
 //********************************
 
 void Init_Trace_Debug(void)
 {
+  BaseType_t xReturned;
+  TaskHandle_t xHandle = NULL;
+
   Init_RTC_Soft();
 
   Serial.begin(115200);
+
+  g_pt_queueTraces = xQueueCreate(10, sizeof(std::string*));
+
+  xTaskCreatePinnedToCore(ThreadTxTrace, "ThreadTxTrace", 4000, NULL, 2, &xHandle, 0);
+
 }
 
 const char* Get_Text_Type_Trace(type_trace_t Type_Trace)
@@ -228,355 +238,6 @@ type_trace_t Get_Max_Debug_Level(void)
   return Max_Debug_Level;
 }
 
-#if UTILISER_TIMER_SW == 1
-uint8_t Send_Timer_Trace(type_trace_t Type_Trace, TimerEvent_t * Timer, type_timer_t Type_Event, bool Horodatage)
-{
-	char Buffer_Temp[100];
-	char * P_Temp = Buffer_Temp;
-	const char * P_Txt_Timer_Event = NULL;
-	uint8_t Len_Temp;
-
-	// Test pour savoir si la trace a un niveau "remontable" ou non
-	if(Test_Trace_Level(Type_Trace) != 0)
-		return 2;
-
-
-	//*****************
-	//* Sanity Checks *
-	//*****************
-	if(Timer == NULL)
-		return 1;
-
-	if(strlen(Timer->Label) > 30) // Libelle trop long
-		return 1;
-
-	//************************************************
-	//* Ecriture de la trame a renvoyer par la trace *
-	//************************************************
-
-	switch(Type_Event)
-	{
-	case TIMER_INIT:
-		P_Txt_Timer_Event = Txt_Timer_Event_Init;
-		//sprintf(Buffer_Temp,"TMR %s %s", Timer->Label, P_Txt_Timer_Event);
-		break;
-	case TIMER_START:
-		P_Txt_Timer_Event = Txt_Timer_Event_Start;
-		//sprintf(Buffer_Temp,"TMR %s %s %lums", Timer->Label, P_Txt_Timer_Event, Timer->Timestamp);
-		break;
-	case TIMER_STOP:
-		P_Txt_Timer_Event = Txt_Timer_Event_Stop;
-		//sprintf(Buffer_Temp,"TMR %s %s", Timer->Label, P_Txt_Timer_Event);
-		break;
-	case TIMER_HALT:
-		P_Txt_Timer_Event = Txt_Timer_Event_Halt;
-		break;
-	case TIMER_TOP:
-		P_Txt_Timer_Event = Txt_Timer_Event_Top;
-		//sprintf(Buffer_Temp,"TMR %s %s", Timer->Label, P_Txt_Timer_Event);
-		break;
-	case TIMER_DELETE:
-		P_Txt_Timer_Event = Txt_Timer_Event_Delete;
-		//sprintf(Buffer_Temp,"TMR %s %s", Timer->Label, P_Txt_Timer_Event);
-		break;
-	case TIMER_SETVALUE:
-		P_Txt_Timer_Event = Txt_Timer_Event_SetValue;
-		break;
-	case TIMER_FINTOP:
-		P_Txt_Timer_Event = Txt_Timer_Event_FinTop;
-		break;
-	default:
-		Send_Trace(DBGX, "Evenement Timer Inconnu", true);
-		return 1;
-		break;
-	}
-
-	strcpy(P_Temp, "TMR ");
-	P_Temp += strlen("TMR ");
-
-	Len_Temp = strlen(Timer->Label);
-	strcpy(P_Temp, Timer->Label);
-	P_Temp += Len_Temp;
-
-	*P_Temp = ' ';
-	P_Temp++;
-
-	Len_Temp = strlen(P_Txt_Timer_Event);
-	strcpy(P_Temp, P_Txt_Timer_Event);
-
-	if((Type_Event == TIMER_START) || (Type_Event == TIMER_SETVALUE))
-	{
-		P_Temp += Len_Temp;
-		*P_Temp = ' ';
-		P_Temp++;
-
-		Len_Temp = Conv_NumToStr(Timer->Timestamp, P_Temp);
-		P_Temp += Len_Temp;
-
-		strcpy(P_Temp, "ms");
-
-	}
-
-	return Send_Trace(Type_Trace, Buffer_Temp, true);
-}
-#endif // UTILISER_TIMER_SW == 1
-
-uint8_t Send_Trace_Num(type_trace_t Type_Trace, const char Txt_Donnees[], uint32_t Num,
-    bool Horodatage, const char *i_ps8_nomFichier, const char *i_ps8_nomFonction,
-    uint16_t i_u16_numeroLigne)
-{
-  char Buffer_Temp[80];
-  uint8_t Len_Temp;
-  char *P_Buffer_Temp = Buffer_Temp;
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  Len_Temp = strlen(Txt_Donnees);
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Len_Temp > 70)
-    return 1;
-
-  //sprintf(Buffer_Temp,"%s: %lu", Txt_Donnees, Num);
-  strcpy(P_Buffer_Temp, Txt_Donnees);
-  P_Buffer_Temp += Len_Temp;
-
-  *P_Buffer_Temp = ':';
-  P_Buffer_Temp++;
-  *P_Buffer_Temp = ' ';
-  P_Buffer_Temp++;
-
-  Len_Temp = Conv_NumToStr(Num, P_Buffer_Temp);
-
-  P_Buffer_Temp += Len_Temp;
-  *P_Buffer_Temp = 0;
-
-  return Send_Trace(Type_Trace, Buffer_Temp, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
-      i_u16_numeroLigne);
-}
-
-uint8_t Send_Trace_GroupValues(type_trace_t Type_Trace, Bank_Grouped_Values_t *Grouped_Values,
-    uint8_t Raw_Size, bool Horodatage)
-{
-  uint8_t Taille_Reelle;
-  uint8_t Buffer_Temp[128];
-  uint8_t Buffer_Temp2[15];
-  uint8_t i;
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  if (Grouped_Values == NULL)
-    return 1;
-
-  Taille_Reelle = Raw_Size / sizeof(Bank_Grouped_Values_t);
-
-  if ((Raw_Size % sizeof(Bank_Grouped_Values_t)) != 0)
-    return 1;
-
-  memset(Buffer_Temp, 0, sizeof(Buffer_Temp));
-
-  for (i = 0; i < Taille_Reelle; i++)
-  {
-    uint8_t Var_Temp;
-
-    strcat((char*) Buffer_Temp, Grouped_Values[i].p_Text_Data);
-    strcat((char*) Buffer_Temp, ": ");
-
-    Var_Temp = Conv_NumToStr(Grouped_Values[i].Value, (char*) Buffer_Temp2);
-
-    if (Var_Temp >= sizeof(Buffer_Temp2))
-      return 1;
-
-    Buffer_Temp2[Var_Temp] = 0;
-
-    strcat((char*) Buffer_Temp, (char*) Buffer_Temp2);
-
-    if (i < (Taille_Reelle - 1))
-      strcat((char*) Buffer_Temp, ", ");
-  }
-
-  return Send_Trace(Type_Trace, (char*) Buffer_Temp, Horodatage);
-}
-
-uint8_t Send_Trace_SignNum(type_trace_t Type_Trace, const char Txt_Donnees[], int32_t Num,
-    bool Horodatage, const char *i_ps8_nomFichier, const char *i_ps8_nomFonction,
-    uint16_t i_u16_numeroLigne)
-{
-  char Buffer_Temp[80];
-  uint8_t Len_Temp;
-  char *P_Buffer_Temp = Buffer_Temp;
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  Len_Temp = strlen(Txt_Donnees);
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Len_Temp > 70)
-    return 1;
-
-  //sprintf(Buffer_Temp,"%s: %lu", Txt_Donnees, Num);
-  strcpy(P_Buffer_Temp, Txt_Donnees);
-  P_Buffer_Temp += Len_Temp;
-
-  *P_Buffer_Temp = ':';
-  P_Buffer_Temp++;
-  *P_Buffer_Temp = ' ';
-  P_Buffer_Temp++;
-
-  if (Num < 0)
-  {
-    //Num = -Num;
-    Num = (~Num) + 1;
-    *P_Buffer_Temp = '-';
-    P_Buffer_Temp++;
-  }
-  else if (Num > 0)
-  {
-    *P_Buffer_Temp = '+';
-    P_Buffer_Temp++;
-  }
-
-  Len_Temp = Conv_NumToStr(Num, P_Buffer_Temp);
-
-  P_Buffer_Temp += Len_Temp;
-  *P_Buffer_Temp = 0;
-
-  return Send_Trace(Type_Trace, Buffer_Temp, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
-      i_u16_numeroLigne);
-}
-
-uint8_t Send_Trace_FPoint(type_trace_t Type_Trace, const char Txt_Donnees[], double Num,
-    uint8_t Precision, bool Horodatage, const char *i_ps8_nomFichier, const char *i_ps8_nomFonction,
-    uint16_t i_u16_numeroLigne)
-{
-  char Buffer_Temp[80];
-  uint8_t Len_Temp;
-  char i;
-  char *P_Buffer_Temp = Buffer_Temp;
-  uint32_t Integer_Part, Fraction_Part;
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  Len_Temp = strlen(Txt_Donnees);
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Len_Temp > 70)
-    return 1;
-
-  //sprintf(Buffer_Temp,"%s: %lu", Txt_Donnees, Num);
-  strcpy(P_Buffer_Temp, Txt_Donnees);
-  P_Buffer_Temp += Len_Temp;
-
-  *P_Buffer_Temp = ':';
-  P_Buffer_Temp++;
-  *P_Buffer_Temp = ' ';
-  P_Buffer_Temp++;
-
-  Integer_Part = Num;
-  Len_Temp = Conv_NumToStr(Integer_Part, P_Buffer_Temp);
-
-  P_Buffer_Temp += Len_Temp;
-
-  Num = Num - Integer_Part;
-
-  if (Precision != 0)
-  {
-    for (i = 0; i < Precision; i++)
-    {
-      Num = Num * 10.0;
-    }
-    Fraction_Part = Num;
-
-    *P_Buffer_Temp = '.';
-    P_Buffer_Temp++;
-
-    Len_Temp = Conv_NumToStr(Fraction_Part, P_Buffer_Temp);
-
-    P_Buffer_Temp += Len_Temp;
-  }
-
-  *P_Buffer_Temp = 0;
-
-  return Send_Trace(Type_Trace, Buffer_Temp, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
-      i_u16_numeroLigne);
-}
-
-#if UTILISER_NUMERO_VERSION_H == 1
-uint8_t Send_Trace_Version(type_trace_t Type_Trace, const struct Struct_Version * Data, bool Horodatage)
-{
-	char Buffer_Temp[80];
-	uint8_t Len_Temp;
-	char * P_Buffer_Temp = Buffer_Temp;
-
-	// Test pour savoir si la trace a un niveau "remontable" ou non
-	if(Test_Trace_Level(Type_Trace) != 0)
-		return 2;
-
-
-	//*****************
-	//* Sanity Checks *
-	//*****************
-	if(Data == NULL)
-		return 1;
-
-	if(sizeof(*Data) >= (sizeof(Buffer_Temp) + 4))
-		return 1;
-
-	//sprintf(Buffer_Temp, "%s %s - %s/%s/%s", Data->Type_Produit, Data->Version, Data->Jour, Data->Mois, Data->Annee);
-	Len_Temp = strlen((char*)Data->Type_Produit);
-	strcpy(P_Buffer_Temp, (char*)Data->Type_Produit);
-	P_Buffer_Temp += Len_Temp;
-
-	*P_Buffer_Temp = ' ';
-	P_Buffer_Temp++;
-
-	Len_Temp = strlen((char*)Data->Version);
-	strcpy(P_Buffer_Temp, (char*)Data->Version);
-	P_Buffer_Temp += Len_Temp;
-
-	Len_Temp = strlen(" - ");
-	strcpy(P_Buffer_Temp, " - ");
-	P_Buffer_Temp += Len_Temp;
-
-
-	Len_Temp = strlen((char*)Data->Jour);
-	strcpy(P_Buffer_Temp, (char*)Data->Jour);
-	P_Buffer_Temp += Len_Temp;
-
-	*P_Buffer_Temp = '/';
-	P_Buffer_Temp++;
-
-	Len_Temp = strlen((char*)Data->Mois);
-	strcpy(P_Buffer_Temp, (char*)Data->Mois);
-	P_Buffer_Temp += Len_Temp;
-
-	*P_Buffer_Temp = '/';
-	P_Buffer_Temp++;
-
-	Len_Temp = strlen((char*)Data->Annee);
-	strcpy(P_Buffer_Temp, (char*)Data->Annee);
-	P_Buffer_Temp += Len_Temp;
-
-	*P_Buffer_Temp = 0;
-
-	return Send_Trace(Type_Trace, Buffer_Temp, Horodatage);
-}
-#endif // UTILISER_NUMERO_VERSION_H == 1
-
 uint8_t Send_Trace_Buffer(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
     uint8_t Size, bool Horodatage)
 {
@@ -650,106 +311,6 @@ uint8_t Send_Trace_Buffer(type_trace_t Type_Trace, const char Txt_Donnees[], uin
   *P_Buffer_Temp = 0;
 
   return Send_Trace(Type_Trace, Buffer_Temp, Horodatage);
-}
-
-uint8_t Send_Trace_Text(type_trace_t Type_Trace, const char Txt_Donnees[],
-    const char Txt_Donnees2[], bool Horodatage, const char *i_ps8_nomFichier,
-    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne)
-{
-  char Buffer_Temp[128];
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Txt_Donnees == NULL)
-    return 1;
-
-  if (Txt_Donnees2 == NULL)
-    return 1;
-
-  strcpy(Buffer_Temp, Txt_Donnees);
-  strcpy(Buffer_Temp + strlen(Txt_Donnees), Txt_Donnees2);
-
-  return Send_Trace(Type_Trace, Buffer_Temp, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
-      i_u16_numeroLigne);
-}
-
-uint8_t Send_Trace_IfNotZero(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t Num,
-    bool Horodatage)
-{
-  // Si Num est nul, pas la peine de perdre du temps en allant plus loin
-  if (Num == 0)
-    return 0;
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Txt_Donnees == NULL)
-    return 1;
-
-  return Send_Trace_Num(Type_Trace, Txt_Donnees, Num, Horodatage);
-}
-
-uint8_t Send_Trace_Test_Result(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t Num,
-    bool Horodatage)
-{
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Txt_Donnees == NULL)
-    return 1;
-
-  switch (Num)
-  {
-  case 0:
-    return Send_Trace_Text(Type_Trace, Txt_Donnees, " : PASS", Horodatage);
-    break;
-  case 255:
-    return Send_Trace_Text(Type_Trace, Txt_Donnees, "...", Horodatage);
-    break;
-  default:
-    return Send_Trace_Text(Type_Trace, Txt_Donnees, " : KO", Horodatage);
-    break;
-  }
-
-  return 1;
-}
-
-uint8_t Send_Trace_Bool(type_trace_t Type_Trace, const char Txt_Donnees[], bool Num_Bool,
-    bool Horodatage)
-{
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  //*****************
-  //* Sanity Checks *
-  //*****************
-  if (Txt_Donnees == NULL)
-    return 1;
-
-  if (Num_Bool == true)
-  {
-    return Send_Trace_Text(Type_Trace, Txt_Donnees, ": true", Horodatage);
-  }
-  else
-  {
-    return Send_Trace_Text(Type_Trace, Txt_Donnees, ": false", Horodatage);
-  }
-
-  return 1;
 }
 
 uint8_t Test_Trace_Level(type_trace_t Level)
@@ -957,12 +518,80 @@ uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_
     const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
 {
   char ts8_BufferTx[200];
+  char ts8_BufferTxString[300];
   va_list argp;
+  uint32_t u32_Temps;
+  uint32_t u32_TimeInt;
+  uint8_t u8_TimeFrac;
+  std::string *l_pt_StringTxt;
+
+  if (Horodatage == true)
+  {
+    u32_Temps = Get_Time();
+
+    u32_TimeInt = u32_Temps / 10;
+    u8_TimeFrac = u32_Temps - (10 * u32_TimeInt);
+  }
 
   va_start(argp, Txt_Donnees);
   vsprintf(ts8_BufferTx, Txt_Donnees, argp);
   va_end(argp);
 
-  return Send_Trace(Type_Trace, ts8_BufferTx, Horodatage, i_ps8_nomFichier, i_ps8_nomFonction,
+  sprintf(ts8_BufferTxString, "%u.%us: %s - %s    @@ (%s -> %s(l.%u))", u32_TimeInt, u8_TimeFrac,
+      Get_Text_Type_Trace(Type_Trace), ts8_BufferTx, i_ps8_nomFonction, i_ps8_nomFichier,
       i_u16_numeroLigne);
+
+  l_pt_StringTxt = new std::string(ts8_BufferTxString);
+
+  if (xQueueSend(g_pt_queueTraces, &l_pt_StringTxt, 0) == pdTRUE)
+  {
+    return 0;
+  }
+
+  return 1;
+}
+
+void ThreadTxTrace(void *Parametre)
+{
+  std::string *l_pt_stringRxUdp = NULL;
+
+  (void) Parametre;
+
+  Serial.println("Thread Tx Trace Demarre");
+
+  while (1)
+  {
+    if (xQueueReceive(g_pt_queueTraces, &l_pt_stringRxUdp, portMAX_DELAY) == pdTRUE)
+    {
+      std::string l_t_localMsg = *l_pt_stringRxUdp;
+      delete l_pt_stringRxUdp;
+
+#if defined(ACTIVER_TRACES_UDP)
+      WiFiUDP l_t_udp;
+      uint8_t u8_retourFct;
+
+      l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+      l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+      u8_retourFct = l_t_udp.endPacket();
+
+      if (u8_retourFct != 1)
+      {
+        // Si l'envoie ne s'estpas bien passé, on attend quelques ticks et on retente une 2nde fois
+        vTaskDelay(10);
+        const unsigned char tu8_buff[] = "2nd...";
+
+        l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+        l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
+        l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+        l_t_udp.endPacket();
+      }
+
+#endif
+
+#if !defined(DESACTIVER_TRACE_SERIE)
+      Serial.println(l_t_localMsg.c_str());
+#endif
+
+    }
+  }
 }

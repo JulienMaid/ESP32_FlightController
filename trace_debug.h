@@ -118,12 +118,6 @@ void Init_Trace_Debug(void);
 #define SEND_VTRACE(typeTrace, TxtDonnees, ...)  \
     Send_VTrace((typeTrace), true, __FILENAME__, __FUNCTION__, __LINE__, (TxtDonnees), ##__VA_ARGS__)
 
-#define SEND_TRACE_NUM(typeTrace, TxtDonnees, Num)  \
-    Send_Trace_Num((typeTrace), (TxtDonnees), (Num), true, __FILENAME__, __FUNCTION__, __LINE__)
-
-#define SEND_TRACE_TEXT(typeTrace, TxtDonnees, TxtDonnees2)  \
-    Send_Trace_Text((typeTrace), (TxtDonnees), (TxtDonnees2), true, __FILENAME__, __FUNCTION__, __LINE__)
-
 uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
     const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...);
 
@@ -139,48 +133,6 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
     uint16_t i_u16_numeroLigne = 0);
 
 /**
- * @brief Envoi en trace la string en argument + la valeur de Num
- * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Txt_Donnees Libelle de la donnee a remonter sur la trace
- * @param Num Valeur a concatener apres le libelle
- * @param Horodatage Demande ou non l'horodatage de la trace
- * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
- */
-uint8_t Send_Trace_Num(type_trace_t Type_Trace, const char Txt_Donnees[], uint32_t Num,
-    bool Horodatage = true, const char *i_ps8_nomFichier = NULL, const char *i_ps8_nomFonction =
-    NULL, uint16_t i_u16_numeroLigne = 0);
-
-/**
- * @brief Envoi en trace la string en argument + la valeur de Num (et son signe !)
- * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Txt_Donnees Libelle de la donnee a remonter sur la trace
- * @param Num Valeur a concatener apres le libelle
- * @param Horodatage Demande ou non l'horodatage de la trace
- * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
- */
-uint8_t Send_Trace_SignNum(type_trace_t Type_Trace, const char Txt_Donnees[], int32_t Num,
-    bool Horodatage = true, const char *i_ps8_nomFichier = NULL, const char *i_ps8_nomFonction =
-    NULL, uint16_t i_u16_numeroLigne = 0);
-
-uint8_t Send_Trace_FPoint(type_trace_t Type_Trace, const char Txt_Donnees[], double Num,
-    uint8_t Precision, bool Horodatage = true, const char *i_ps8_nomFichier = NULL,
-    const char *i_ps8_nomFonction = NULL, uint16_t i_u16_numeroLigne = 0);
-
-uint8_t Send_Trace_GroupValues(type_trace_t Type_Trace, Bank_Grouped_Values_t *p_Grouped_Values,
-    uint8_t Raw_Size, bool Horodatage = true);
-
-#if UTILISER_NUMERO_VERSION_H == 1
-/**
- * @brief Renvoi la structure de gestion de version sur la trace
- * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Data Pointeur vers la structure de gestion de version
- * @param Horodatage Demande ou non l'horodatage de la trace
- * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
- */
-uint8_t Send_Trace_Version(type_trace_t Type_Trace, const struct Struct_Version * Data, bool Horodatage=true);
-#endif
-
-/**
  * @brief Envoi en trace le contenu d'un buffer (attention taille = 32 octets !!)
  * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
  * @param Txt_Donnees Libelle de la donnee a remonter sur la trace
@@ -191,47 +143,6 @@ uint8_t Send_Trace_Version(type_trace_t Type_Trace, const struct Struct_Version 
  */
 uint8_t Send_Trace_Buffer(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
     uint8_t Size, bool Horodatage = true);
-
-uint8_t Send_Trace_IfNotZero(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t Num,
-    bool Horodatage = true);
-
-uint8_t Send_Trace_Test_Result(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t Num,
-    bool Horodatage = true);
-
-#if UTILISER_TIMER_SW == 1
-/**
- * @brief Envoi d'une trace d'evenement timer
- * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Timer Pointeur vers le timer concerne
- * @param Type_Event Type d'evenement Timer
- * @param Horodatage Demande ou non l'horodatage de la trace
- * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
- */
-uint8_t Send_Timer_Trace(type_trace_t Type_Trace, TimerEvent_t * Timer, type_timer_t Type_Event, bool Horodatage=true);
-#endif // UTILISER_TIMER_SW == 1
-
-/**
- * @brief Envoi en trace la concatenation de deux chaines de caracteres
- * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Txt_Donnees Libelle de la donnee a remonter sur la trace
- * @param Txt_Donnees2 Texte a concatener avec Txt_Donnees
- * @param Horodatage
- * @return
- */
-uint8_t Send_Trace_Text(type_trace_t Type_Trace, const char Txt_Donnees[],
-    const char Txt_Donnees2[], bool Horodatage = true, const char *i_ps8_nomFichier = NULL,
-    const char *i_ps8_nomFonction = NULL, uint16_t i_u16_numeroLigne = 0);
-
-/**
- * @brief Envoi en trace la string en argument + la valeur de Num_bool
- * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Txt_Donnees Libelle de la donnee a remonter sur la trace
- * @param Num_Bool Valeur a concatener apres le libelle
- * @param Horodatage Demande ou non l'horodatage de la trace
- * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
- */
-uint8_t Send_Trace_Bool(type_trace_t Type_Trace, const char Txt_Donnees[], bool Num_Bool,
-    bool Horodatage = true);
 
 /**
  * @brief Fixe le niveau maximum de trace a remonter
@@ -265,10 +176,6 @@ const char* Get_Text_Type_Trace(type_trace_t Type_Trace);
  */
 uint8_t Conv_NumToStr(uint32_t Num, char *String);
 
-#ifdef TRACE_DEBUG_C
-
-#else
-
-#endif
+void ThreadTxTrace(void *Parametre);
 
 #endif /* TRACE_DEBUG_H */
