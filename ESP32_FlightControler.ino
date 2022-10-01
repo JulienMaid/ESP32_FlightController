@@ -57,6 +57,8 @@ void setup()
 void loop()
 {
   std::string *l_pt_stringRxUdp = NULL;
+  static uint32_t u32_TempsUsPrecedent = micros();
+  uint32_t u32_TempsUsCourant;
 
   uint8_t var = 8;
 
@@ -81,6 +83,21 @@ void loop()
 
       g_pt_ControleurMoteurs->FixerNouvellesConsigne(20, 40, 60, 80);
     }
+  }
+
+  u32_TempsUsCourant = micros();
+
+  // Gestion de l'overflow de micros()
+  if (u32_TempsUsCourant < u32_TempsUsPrecedent)
+  {
+    u32_TempsUsPrecedent = u32_TempsUsCourant;
+    SEND_VTRACE(INFO, "OverFlow micros()");
+  }
+
+  if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 4000000)
+  {
+    u32_TempsUsPrecedent = u32_TempsUsCourant;
+    SEND_VTRACE(INFO, "TOP !");
   }
 
   delay(100);
