@@ -21,9 +21,10 @@ void setup()
 {
   bool l_b_WifiConnected = false;
 
-  // initialisation du Timer matériel pour le module TimerSW
+  // Initialisation du Timer matériel pour le module TimerSW
   g_t_blinker.attach(0.05, Inc_Timer);
 
+  // Initialisation du système de Traces
   Init_Trace_Debug();
   Set_Max_Debug_Level(DBG1);
 
@@ -33,6 +34,7 @@ void setup()
 
   SEND_VTRACE(INFO, "Connection Wifi: %d", l_b_WifiConnected);
 
+  // Demarrage du service de mise à jour OTA
   if (l_b_WifiConnected == true)
   {
     DemarrerServeurOTA(g_t_MsgDemarrage);
@@ -41,14 +43,14 @@ void setup()
 
   SEND_VTRACE(INFO, "Frequence CPU = %d MHz", getCpuFrequencyMhz());
 
+  // Initialisation du serveur UDP pour recevoir des commandes en Wifi
   initServeurUDP(4321);
 
-//  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-//      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
-
+  // Création du module de controle Moteurs
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-      e_typeMoteur_t::MOTEUR_BRUSHED, 2, 4, 16, 17);
+      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
 
+  // Initialisation du décodage des signaux issues du recepteur Radio
   InitPortCmd();
 
 }
@@ -59,6 +61,7 @@ void loop()
   std::string *l_pt_stringRxUdp = NULL;
   static uint32_t u32_TempsUsPrecedent = micros();
   uint32_t u32_TempsUsCourant;
+  static bool l_b_MoteursActives = false;
 
   uint8_t var = 8;
 
@@ -72,6 +75,8 @@ void loop()
     if (l_t_localMsg == "OFF")
     {
       SEND_VTRACE(INFO, "Moteurs OFF");
+      g_pt_ControleurMoteurs->FixerNouvellesConsigne(0, 0, 0, 0);
+      l_b_MoteursActives = false;
     }
     else if (l_t_localMsg >= "ON")
     {
@@ -82,6 +87,7 @@ void loop()
       SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
 
       g_pt_ControleurMoteurs->FixerNouvellesConsigne(20, 40, 60, 80);
+      l_b_MoteursActives = true;
     }
   }
 
@@ -97,10 +103,9 @@ void loop()
   if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 4000000)
   {
     u32_TempsUsPrecedent = u32_TempsUsCourant;
+
     SEND_VTRACE(INFO, "TOP !");
+
   }
 
-  delay(100);
-
-//  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
 }
