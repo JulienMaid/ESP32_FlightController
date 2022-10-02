@@ -3,10 +3,12 @@
 #include "trace_debug.h"
 
 uint32_t tu32_TempsVoies[e_NumeroVoie_t::Nombre_Voies] = { 0 };
-uint32_t tu32_ImpulsionVoies[e_NumeroVoie_t::Nombre_Voies] = { 0 };
+volatile uint32_t tu32_ImpulsionVoies[e_NumeroVoie_t::Nombre_Voies] = { 0 };
 e_EtatsVoie_t te_EtatVoies[e_NumeroVoie_t::Nombre_Voies];
 uint8_t tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Nombre_Voies];
-bool tb_NouvelleValeurImpulsionVoies[e_NumeroVoie_t::Nombre_Voies];
+volatile bool tb_NouvelleValeurImpulsionVoies[e_NumeroVoie_t::Nombre_Voies];
+
+SemaphoreHandle_t l_t_MutexLecturePort;
 
 void InitPortCmd(void)
 {
@@ -22,6 +24,8 @@ void InitPortCmd(void)
   tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie2] = PORT_VOIE2;
   tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie3] = PORT_VOIE3;
   tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie4] = PORT_VOIE4;
+
+  l_t_MutexLecturePort = xSemaphoreCreateMutex();
 
   pinMode(PORT_VOIE1, INPUT_PULLDOWN);
   pinMode(PORT_VOIE2, INPUT_PULLDOWN);
@@ -98,9 +102,47 @@ void GestionPortCmd(e_NumeroVoie_t i_e_NumeroVoie)
         SEND_VTRACE(WARNING, "Ecrasement Voie %u", i_e_NumeroVoie);
       }
 
-      tu32_ImpulsionVoies[i_e_NumeroVoie] = u32_ImpulsionVoie;
-      tb_NouvelleValeurImpulsionVoies[i_e_NumeroVoie] = true;
+      if ( xSemaphoreTake( l_t_MutexLecturePort, ( TickType_t ) 1 ) == pdTRUE)
+      {
+        tu32_ImpulsionVoies[i_e_NumeroVoie] = u32_ImpulsionVoie;
+        tb_NouvelleValeurImpulsionVoies[i_e_NumeroVoie] = true;
+      }
+      else
+      {
+        SEND_VTRACE(ERROR, "Error Prise Mutex");
+      }
+
+      xSemaphoreGive(l_t_MutexLecturePort);
     }
   }
 }
 
+uint8_t LectureImpulsionsCmd(uint32_t *o_tu32_TableauLargeurImpulsion[4])
+{
+  uint8_t u8_CR = 0;
+
+  for (auto i = 0; i < e_NumeroVoie_t::Nombre_Voies; i++)
+  {
+    if (tb_NouvelleValeurImpulsionVoies[i] == true)
+    {
+      if ( xSemaphoreTake( l_t_MutexLecturePort, ( TickType_t ) 1 ) == pdTRUE)
+      {
+        *o_tu32_TableauLargeurImpulsion[i] = tu32_ImpulsionVoies[i];
+        tb_NouvelleValeurImpulsionVoies[i] = false;
+      }
+      else
+      {
+        SEND_VTRACE(ERROR, "Error Prise Mutex");
+      }
+
+      xSemaphoreGive(l_t_MutexLecturePort);
+
+    }
+    else
+    {
+      u8_CR = 1;
+    }
+  }
+
+  return u8_CR;
+}

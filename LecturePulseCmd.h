@@ -8,6 +8,8 @@
 #ifndef LECTUREPULSECMD_H_
 #define LECTUREPULSECMD_H_
 
+#include <stdint.h>
+
 #define PORT_VOIE1  0
 #define PORT_VOIE2  0
 #define PORT_VOIE3  0
@@ -35,6 +37,6 @@ void InitPortCmd(void);
 
 void GestionPortCmd(e_NumeroVoie_t i_e_NumeroVoie);
 
-void LecturePortCmd(void);
+uint8_t LectureImpulsionsCmd(uint32_t *o_tu32_TableauLargeurImpulsion[4]);
 
 #endif /* LECTUREPULSECMD_H_ */
