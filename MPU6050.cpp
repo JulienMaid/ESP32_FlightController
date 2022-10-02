@@ -79,7 +79,7 @@ void setupMpu6050Registers()
  *
  * This function might take ~2sec for 2000 samples.
  */
-void calibrateMpu6050()
+void calibrateMpu6050(uint16_t *o_tu16_gyroOffset)
 {
   uint16_t max_samples = 2000;
   // The RAW values got from gyro (in °/sec) in that order: X, Y, Z
@@ -87,27 +87,25 @@ void calibrateMpu6050()
   // The RAW values got from accelerometer (in m/sec²) in that order: X, Y, Z
   uint16_t tu16_accRaw[3];
 
+  o_tu16_gyroOffset[X] = 0;
+  o_tu16_gyroOffset[Y] = 0;
+  o_tu16_gyroOffset[Z] = 0;
+
   for (uint16_t i = 0; i < max_samples; i++)
   {
     readSensor(tu16_accRaw, tu16_gyroRaw);
 
-    gyro_offset[X] += tu16_gyroRaw[X];
-    gyro_offset[Y] += tu16_gyroRaw[Y];
-    gyro_offset[Z] += tu16_gyroRaw[Z];
+    o_tu16_gyroOffset[X] += tu16_gyroRaw[X];
+    o_tu16_gyroOffset[Y] += tu16_gyroRaw[Y];
+    o_tu16_gyroOffset[Z] += tu16_gyroRaw[Z];
 
-    // Generate low throttle pulse to init ESC and prevent them beeping
-//    PORTD |= 0b11110000;      // Set pins #4 #5 #6 #7 HIGH
-//    delayMicroseconds(1000); // Wait 1000µs
-//    PORTD &= 0b00001111;      // Then set LOW
-
-    // Just wait a bit before next loop
     delay(3);
   }
 
   // Calculate average offsets
-  gyro_offset[X] /= max_samples;
-  gyro_offset[Y] /= max_samples;
-  gyro_offset[Z] /= max_samples;
+  o_tu16_gyroOffset[X] /= max_samples;
+  o_tu16_gyroOffset[Y] /= max_samples;
+  o_tu16_gyroOffset[Z] /= max_samples;
 }
 
 /**
