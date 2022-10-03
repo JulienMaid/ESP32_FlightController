@@ -28,7 +28,11 @@ public:
   ControleurMoteursBrushless& operator=(const ControleurMoteursBrushless &other) = delete;
   ControleurMoteursBrushless& operator=(ControleurMoteursBrushless &&other) = delete;
 
-  virtual void FixerNouvellesConsigne(uint16_t i_u16_ConsigneMoteurAvG,
+  virtual void FixerNouvellesConsignePourMille(uint16_t i_u16_ConsigneMoteurAvG,
+      uint16_t i_u16_ConsigneMoteurAvD, uint16_t i_u16_ConsigneMoteurArG,
+      uint16_t i_u16_ConsigneMoteurArD) override;
+
+  virtual void FixerNouvellesConsigneImpulsion(uint16_t i_u16_ConsigneMoteurAvG,
       uint16_t i_u16_ConsigneMoteurAvD, uint16_t i_u16_ConsigneMoteurArG,
       uint16_t i_u16_ConsigneMoteurArD) override;
 

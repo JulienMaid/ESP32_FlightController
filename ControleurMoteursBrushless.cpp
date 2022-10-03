@@ -43,7 +43,7 @@ void ControleurMoteursBrushless::ConfigurerMoteurs(uint8_t i_u8_MoteurAvG, uint8
 
 }
 
-void ControleurMoteursBrushless::FixerNouvellesConsigne(uint16_t i_u16_ConsigneMoteurAvG,
+void ControleurMoteursBrushless::FixerNouvellesConsignePourMille(uint16_t i_u16_ConsigneMoteurAvG,
     uint16_t i_u16_ConsigneMoteurAvD, uint16_t i_u16_ConsigneMoteurArG,
     uint16_t i_u16_ConsigneMoteurArD)
 {
@@ -52,13 +52,13 @@ void ControleurMoteursBrushless::FixerNouvellesConsigne(uint16_t i_u16_ConsigneM
   uint16_t u16_RapportCyclique_ArG = 0;
   uint16_t u16_RapportCyclique_ArD = 0;
 
-  u16_RapportCyclique_AvG = map(i_u16_ConsigneMoteurAvG, 0, 100, RAPPORT_CYCLIQUE_0,
+  u16_RapportCyclique_AvG = map(i_u16_ConsigneMoteurAvG, 0, 1000, RAPPORT_CYCLIQUE_0,
   RAPPORT_CYCLIQUE_100);
-  u16_RapportCyclique_AvD = map(i_u16_ConsigneMoteurAvD, 0, 100, RAPPORT_CYCLIQUE_0,
+  u16_RapportCyclique_AvD = map(i_u16_ConsigneMoteurAvD, 0, 1000, RAPPORT_CYCLIQUE_0,
   RAPPORT_CYCLIQUE_100);
-  u16_RapportCyclique_ArG = map(i_u16_ConsigneMoteurArG, 0, 100, RAPPORT_CYCLIQUE_0,
+  u16_RapportCyclique_ArG = map(i_u16_ConsigneMoteurArG, 0, 1000, RAPPORT_CYCLIQUE_0,
   RAPPORT_CYCLIQUE_100);
-  u16_RapportCyclique_ArD = map(i_u16_ConsigneMoteurArD, 0, 100, RAPPORT_CYCLIQUE_0,
+  u16_RapportCyclique_ArD = map(i_u16_ConsigneMoteurArD, 0, 1000, RAPPORT_CYCLIQUE_0,
   RAPPORT_CYCLIQUE_100);
 
   ledcWrite(CANAL_AVG, u16_RapportCyclique_AvG);
@@ -66,4 +66,28 @@ void ControleurMoteursBrushless::FixerNouvellesConsigne(uint16_t i_u16_ConsigneM
   ledcWrite(CANAL_ARG, u16_RapportCyclique_ArG);
   ledcWrite(CANAL_ARD, u16_RapportCyclique_ArD);
 
+}
+
+void ControleurMoteursBrushless::FixerNouvellesConsigneImpulsion(uint16_t i_u16_ConsigneMoteurAvG,
+    uint16_t i_u16_ConsigneMoteurAvD, uint16_t i_u16_ConsigneMoteurArG,
+    uint16_t i_u16_ConsigneMoteurArD)
+{
+  uint16_t u16_RapportCyclique_AvG = 0;
+  uint16_t u16_RapportCyclique_AvD = 0;
+  uint16_t u16_RapportCyclique_ArG = 0;
+  uint16_t u16_RapportCyclique_ArD = 0;
+
+  u16_RapportCyclique_AvG = map(i_u16_ConsigneMoteurAvG, 1000, 2000, RAPPORT_CYCLIQUE_0,
+  RAPPORT_CYCLIQUE_100);
+  u16_RapportCyclique_AvD = map(i_u16_ConsigneMoteurAvD, 1000, 2000, RAPPORT_CYCLIQUE_0,
+  RAPPORT_CYCLIQUE_100);
+  u16_RapportCyclique_ArG = map(i_u16_ConsigneMoteurArG, 1000, 2000, RAPPORT_CYCLIQUE_0,
+  RAPPORT_CYCLIQUE_100);
+  u16_RapportCyclique_ArD = map(i_u16_ConsigneMoteurArD, 1000, 2000, RAPPORT_CYCLIQUE_0,
+  RAPPORT_CYCLIQUE_100);
+
+  ledcWrite(CANAL_AVG, u16_RapportCyclique_AvG);
+  ledcWrite(CANAL_AVD, u16_RapportCyclique_AvD);
+  ledcWrite(CANAL_ARG, u16_RapportCyclique_ArG);
+  ledcWrite(CANAL_ARD, u16_RapportCyclique_ArD);
 }

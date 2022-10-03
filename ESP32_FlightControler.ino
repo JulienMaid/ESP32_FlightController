@@ -76,7 +76,7 @@ void loop()
 
       SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
 
-      g_pt_ControleurMoteurs->FixerNouvellesConsigne(20, 40, 60, 80);
+      g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(20, 40, 60, 80);
     }
   }
 
