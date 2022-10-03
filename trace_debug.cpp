@@ -525,6 +525,10 @@ uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_
   uint8_t u8_TimeFrac;
   std::string *l_pt_StringTxt;
 
+  // Test pour savoir si la trace a un niveau "remontable" ou non
+  if (Test_Trace_Level(Type_Trace) != 0)
+    return 2;
+
   if (Horodatage == true)
   {
     u32_Temps = Get_Time();
