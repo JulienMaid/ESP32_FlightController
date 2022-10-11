@@ -10,12 +10,12 @@
 
 #include <stdint.h>
 
-enum e_RepereOrthonormal_t
+enum e_RepereOrthonormal_t : uint8_t
 {
   X = 0, Y = 1, Z = 2
 };
 
-enum e_ListeVoies_t
+enum e_ListeVoies_t : uint8_t
 {
   Voie1 = 0, Voie2 = 1, Voie3 = 2, Voie4 = 3, NbreVoies
 };

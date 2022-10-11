@@ -18,27 +18,89 @@ ControleurPID::~ControleurPID()
 uint8_t ControleurPID::NouvellesValeursCommandes(uint16_t Voie1, uint16_t Voie2, uint16_t Voie3,
     uint16_t Voie4)
 {
-  *CorrespondanceVoies[e_ListeVoies_t::Voie1] = Voie1;
-  *CorrespondanceVoies[e_ListeVoies_t::Voie2] = Voie2;
-  *CorrespondanceVoies[e_ListeVoies_t::Voie3] = Voie3;
-  *CorrespondanceVoies[e_ListeVoies_t::Voie4] = Voie4;
+  *m_tu32_CorrespondanceVoies[e_ListeVoies_t::Voie1] = Voie1;
+  *m_tu32_CorrespondanceVoies[e_ListeVoies_t::Voie2] = Voie2;
+  *m_tu32_CorrespondanceVoies[e_ListeVoies_t::Voie3] = Voie3;
+  *m_tu32_CorrespondanceVoies[e_ListeVoies_t::Voie4] = Voie4;
 
   return 0;
+}
+
+void ControleurPID::NouvellesValeursMouvementsAngulaires(float i_f_MvtYaw, float i_f_MvtPitch,
+    float i_f_MvtRoll)
+{
+  angular_motions[e_ListeMouvements_t::Yaw] = i_f_MvtYaw;
+  angular_motions[e_ListeMouvements_t::Pitch] = i_f_MvtPitch;
+  angular_motions[e_ListeMouvements_t::Roll] = i_f_MvtRoll;
+}
+
+/**
+ * Calculeur l'erreur pour le controleur PID
+ */
+void ControleurPID::CalculerErreurs()
+{
+  // Calcul de l'erreur courante
+  m_f_errors[e_ListeMouvements_t::Yaw] = angular_motions[e_ListeMouvements_t::Yaw]
+      - pid_set_points[e_ListeMouvements_t::Yaw];
+  m_f_errors[e_ListeMouvements_t::Pitch] = angular_motions[e_ListeMouvements_t::Pitch]
+      - pid_set_points[e_ListeMouvements_t::Pitch];
+  m_f_errors[e_ListeMouvements_t::Roll] = angular_motions[e_ListeMouvements_t::Roll]
+      - pid_set_points[e_ListeMouvements_t::Roll];
+
+  // Calcul de la somme des erreurs: Intregrale
+  m_f_error_sum[e_ListeMouvements_t::Yaw] += m_f_errors[e_ListeMouvements_t::Yaw];
+  m_f_error_sum[e_ListeMouvements_t::Pitch] += m_f_errors[e_ListeMouvements_t::Pitch];
+  m_f_error_sum[e_ListeMouvements_t::Roll] += m_f_errors[e_ListeMouvements_t::Roll];
+
+  // Bornage des valeurs
+  m_f_error_sum[e_ListeMouvements_t::Yaw] = minMax(m_f_error_sum[e_ListeMouvements_t::Yaw],
+      m_dble_ValeurMvtMini / Ki[e_ListeMouvements_t::Yaw],
+      m_dble_ValeurMvtMaxi / Ki[e_ListeMouvements_t::Yaw]);
+  m_f_error_sum[e_ListeMouvements_t::Pitch] = minMax(m_f_error_sum[e_ListeMouvements_t::Pitch],
+      m_dble_ValeurMvtMini / Ki[e_ListeMouvements_t::Pitch],
+      m_dble_ValeurMvtMaxi / Ki[e_ListeMouvements_t::Pitch]);
+  m_f_error_sum[e_ListeMouvements_t::Roll] = minMax(m_f_error_sum[e_ListeMouvements_t::Roll],
+      m_dble_ValeurMvtMini / Ki[e_ListeMouvements_t::Roll],
+      m_dble_ValeurMvtMaxi / Ki[e_ListeMouvements_t::Roll]);
+
+  // Calcul de l'erreur différentielle : Dérivée
+  m_f_delta_err[e_ListeMouvements_t::Yaw] = m_f_errors[e_ListeMouvements_t::Yaw]
+      - m_f_previous_error[e_ListeMouvements_t::Yaw];
+  m_f_delta_err[e_ListeMouvements_t::Pitch] = m_f_errors[e_ListeMouvements_t::Pitch]
+      - m_f_previous_error[e_ListeMouvements_t::Pitch];
+  m_f_delta_err[e_ListeMouvements_t::Roll] = m_f_errors[e_ListeMouvements_t::Roll]
+      - m_f_previous_error[e_ListeMouvements_t::Roll];
+
+  // Sauvegarder l'erreur contrainte pour le prochain cycle
+  m_f_previous_error[e_ListeMouvements_t::Yaw] = m_f_errors[e_ListeMouvements_t::Yaw];
+  m_f_previous_error[e_ListeMouvements_t::Pitch] = m_f_errors[e_ListeMouvements_t::Pitch];
+  m_f_previous_error[e_ListeMouvements_t::Roll] = m_f_errors[e_ListeMouvements_t::Roll];
 }
 
 uint8_t ControleurPID::RecupererNouvellesConsignesMoteurs(uint16_t *o_u16_AvG, uint16_t *o_u16_AvD,
     uint16_t *o_u16_ArG, uint16_t *o_u16_ArD)
 {
-  *o_u16_AvG = pulse_length_esc1;
-  *o_u16_AvD = pulse_length_esc2;
-  *o_u16_ArG = pulse_length_esc3;
-  *o_u16_ArG = pulse_length_esc4;
+  *o_u16_AvG = m_u32_ImpulsionEsc1;
+  *o_u16_AvD = m_u32_ImpulsionEsc2;
+  *o_u16_ArG = m_u32_ImpulsionEsc3;
+  *o_u16_ArG = m_u32_ImpulsionEsc4;
 
   return 0;
 }
 
 void ControleurPID::ResetPID(void)
 {
+  m_f_errors[e_ListeMouvements_t::Yaw] = 0;
+  m_f_errors[e_ListeMouvements_t::Pitch] = 0;
+  m_f_errors[e_ListeMouvements_t::Roll] = 0;
+
+  m_f_error_sum[e_ListeMouvements_t::Yaw] = 0;
+  m_f_error_sum[e_ListeMouvements_t::Pitch] = 0;
+  m_f_error_sum[e_ListeMouvements_t::Roll] = 0;
+
+  m_f_previous_error[e_ListeMouvements_t::Yaw] = 0;
+  m_f_previous_error[e_ListeMouvements_t::Pitch] = 0;
+  m_f_previous_error[e_ListeMouvements_t::Roll] = 0;
 }
 
 ControleurPID* ControleurPID::RecupererInstance(void)
@@ -73,58 +135,57 @@ void ControleurPID::ActualiserControlleurPID()
    *
    * Each motor output is considered as a servomotor. As a result, value range is about 1000µs to 2000µs
    */
-  float yaw_pid = 0;
-  float pitch_pid = 0;
-  float roll_pid = 0;
-  int16_t throttle = m_u16_Throttle; //pulse_length[mode_mapping[THROTTLE]];
+  float l_f_YawPid = 0;
+  float l_f_PitchPid = 0;
+  float l_f_RollPid = 0;
 
   // Initialize motor commands with throttle
-  pulse_length_esc1 = throttle;
-  pulse_length_esc2 = throttle;
-  pulse_length_esc3 = throttle;
-  pulse_length_esc4 = throttle;
+  m_u32_ImpulsionEsc1 = m_u32_Throttle;
+  m_u32_ImpulsionEsc2 = m_u32_Throttle;
+  m_u32_ImpulsionEsc3 = m_u32_Throttle;
+  m_u32_ImpulsionEsc4 = m_u32_Throttle;
 
   // Do not calculate anything if throttle is 0
-  if (throttle >= 1012)
+  if (m_u32_Throttle >= 1012)
   {
     // PID = e.Kp + ∫e.Ki + Δe.Kd
-    yaw_pid = (errors[e_ListeMouvements_t::Yaw] * Kp[e_ListeMouvements_t::Yaw])
-        + (error_sum[e_ListeMouvements_t::Yaw] * Ki[e_ListeMouvements_t::Yaw])
-        + (delta_err[e_ListeMouvements_t::Yaw] * Kd[e_ListeMouvements_t::Yaw]);
-    pitch_pid = (errors[e_ListeMouvements_t::Pitch] * Kp[e_ListeMouvements_t::Pitch])
-        + (error_sum[e_ListeMouvements_t::Pitch] * Ki[e_ListeMouvements_t::Pitch])
-        + (delta_err[e_ListeMouvements_t::Pitch] * Kd[e_ListeMouvements_t::Pitch]);
-    roll_pid = (errors[e_ListeMouvements_t::Roll] * Kp[e_ListeMouvements_t::Roll])
-        + (error_sum[e_ListeMouvements_t::Roll] * Ki[e_ListeMouvements_t::Roll])
-        + (delta_err[e_ListeMouvements_t::Roll] * Kd[e_ListeMouvements_t::Roll]);
+    l_f_YawPid = (m_f_errors[e_ListeMouvements_t::Yaw] * Kp[e_ListeMouvements_t::Yaw])
+        + (m_f_error_sum[e_ListeMouvements_t::Yaw] * Ki[e_ListeMouvements_t::Yaw])
+        + (m_f_delta_err[e_ListeMouvements_t::Yaw] * Kd[e_ListeMouvements_t::Yaw]);
+    l_f_PitchPid = (m_f_errors[e_ListeMouvements_t::Pitch] * Kp[e_ListeMouvements_t::Pitch])
+        + (m_f_error_sum[e_ListeMouvements_t::Pitch] * Ki[e_ListeMouvements_t::Pitch])
+        + (m_f_delta_err[e_ListeMouvements_t::Pitch] * Kd[e_ListeMouvements_t::Pitch]);
+    l_f_RollPid = (m_f_errors[e_ListeMouvements_t::Roll] * Kp[e_ListeMouvements_t::Roll])
+        + (m_f_error_sum[e_ListeMouvements_t::Roll] * Ki[e_ListeMouvements_t::Roll])
+        + (m_f_delta_err[e_ListeMouvements_t::Roll] * Kd[e_ListeMouvements_t::Roll]);
 
     // Keep values within acceptable range. TODO export hard-coded values in variables/const
-    yaw_pid = minMax(yaw_pid, (float) -400.0, (float) 400.0);
-    pitch_pid = minMax(pitch_pid, (float) -400, (float) 400);
-    roll_pid = minMax(roll_pid, (float) -400, (float) 400);
+    l_f_YawPid = minMax(l_f_YawPid, m_dble_ValeurMvtMini, m_dble_ValeurMvtMaxi);
+    l_f_PitchPid = minMax(l_f_PitchPid, m_dble_ValeurMvtMini, m_dble_ValeurMvtMaxi);
+    l_f_RollPid = minMax(l_f_RollPid, m_dble_ValeurMvtMini, m_dble_ValeurMvtMaxi);
 
     // Calculate pulse duration for each ESC
-    pulse_length_esc1 = throttle - roll_pid - pitch_pid + yaw_pid;
-    pulse_length_esc2 = throttle + roll_pid - pitch_pid - yaw_pid;
-    pulse_length_esc3 = throttle - roll_pid + pitch_pid - yaw_pid;
-    pulse_length_esc4 = throttle + roll_pid + pitch_pid + yaw_pid;
+    m_u32_ImpulsionEsc1 = m_u32_Throttle - l_f_RollPid - l_f_PitchPid + l_f_YawPid;
+    m_u32_ImpulsionEsc2 = m_u32_Throttle + l_f_RollPid - l_f_PitchPid - l_f_YawPid;
+    m_u32_ImpulsionEsc3 = m_u32_Throttle - l_f_RollPid + l_f_PitchPid - l_f_YawPid;
+    m_u32_ImpulsionEsc4 = m_u32_Throttle + l_f_RollPid + l_f_PitchPid + l_f_YawPid;
   }
 
   // Prevent out-of-range-values
-  pulse_length_esc1 = minMax(pulse_length_esc1, (uint32_t) 1100, (uint32_t) 2000);
-  pulse_length_esc2 = minMax(pulse_length_esc2, (uint32_t) 1100, (uint32_t) 2000);
-  pulse_length_esc3 = minMax(pulse_length_esc3, (uint32_t) 1100, (uint32_t) 2000);
-  pulse_length_esc4 = minMax(pulse_length_esc4, (uint32_t) 1100, (uint32_t) 2000);
+  m_u32_ImpulsionEsc1 = minMax(m_u32_ImpulsionEsc1, m_u32_impulsionMini, m_u32_impulsionMaxi);
+  m_u32_ImpulsionEsc2 = minMax(m_u32_ImpulsionEsc2, m_u32_impulsionMini, m_u32_impulsionMaxi);
+  m_u32_ImpulsionEsc3 = minMax(m_u32_ImpulsionEsc3, m_u32_impulsionMini, m_u32_impulsionMaxi);
+  m_u32_ImpulsionEsc4 = minMax(m_u32_ImpulsionEsc4, m_u32_impulsionMini, m_u32_impulsionMaxi);
 
 }
 
 void ControleurPID::ConfigurerCorrespondanceVoies(e_ListeVoies_t i_e_Yaw, e_ListeVoies_t i_e_Pitch,
     e_ListeVoies_t i_e_Roll, e_ListeVoies_t i_e_Throttle)
 {
-  CorrespondanceVoies[i_e_Yaw] = &m_u16_Yaw;
-  CorrespondanceVoies[i_e_Pitch] = &m_u16_Pitch;
-  CorrespondanceVoies[i_e_Roll] = &m_u16_Roll;
-  CorrespondanceVoies[i_e_Throttle] = &m_u16_Throttle;
+  m_tu32_CorrespondanceVoies[i_e_Yaw] = &m_u32_Yaw;
+  m_tu32_CorrespondanceVoies[i_e_Pitch] = &m_u32_Pitch;
+  m_tu32_CorrespondanceVoies[i_e_Roll] = &m_u32_Roll;
+  m_tu32_CorrespondanceVoies[i_e_Throttle] = &m_u32_Throttle;
 }
 
 /**
