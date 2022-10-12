@@ -9,11 +9,13 @@
 
 #include <string.h>
 #include <math.h>
+#include "MPU6050.h"
 
 ClassCalculerAngles::ClassCalculerAngles()
 {
-  // TODO Auto-generated constructor stub
+  setupMpu6050Registers();
 
+  ValeursOffsetGyroMPU6050();
 }
 
 ClassCalculerAngles::~ClassCalculerAngles()
@@ -142,4 +144,14 @@ void ClassCalculerAngles::DonnerDeplacementsAngulaires(float *o_pf_DeplacementsA
 void ClassCalculerAngles::DonnerMesures(float *o_pf_Mesures)
 {
   memcpy(o_pf_Mesures, m_tf_Mesures, sizeof(m_tf_DeplacementsAngulaires));
+}
+
+void ClassCalculerAngles::NouvellesValeursMPU6050()
+{
+  readSensor(m_ts16_AccRAW, m_ts16_GyroRAW);
+}
+
+void ClassCalculerAngles::ValeursOffsetGyroMPU6050()
+{
+  calibrateMpu6050(m_ts16_GyroOffset);
 }

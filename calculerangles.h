@@ -21,6 +21,9 @@ public:
   ClassCalculerAngles& operator=(const ClassCalculerAngles &other) = delete;
   ClassCalculerAngles& operator=(ClassCalculerAngles &&other) = delete;
 
+  void NouvellesValeursMPU6050();
+  void ValeursOffsetGyroMPU6050();
+
   void NouvellesValeurs(int16_t *i_ps16_AccRAW, int16_t *i_ps16_GyroRAW);
   void ValeursOffsetGyro(int16_t *i_ps16_GyroOffset);
 
@@ -42,7 +45,7 @@ private:
   float m_f_GyroAngle[e_RepereOrthonormal_t::NbreAxes] = { 0, 0, 0 };
   float m_tf_AccAngle[e_RepereOrthonormal_t::NbreAxes] = { 0, 0, 0 };
 
-  int32_t m_ts16_GyroOffset[e_RepereOrthonormal_t::NbreAxes] = { 0, 0, 0 };
+  int16_t m_ts16_GyroOffset[e_RepereOrthonormal_t::NbreAxes] = { 0, 0, 0 };
 
   /**
    * Real measures on 3 axis calculated from gyro AND accelerometer in that order : Yaw, Pitch, Roll
