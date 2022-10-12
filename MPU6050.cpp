@@ -8,31 +8,7 @@
 #include "MPU6050.h"
 #include <Arduino.h>
 #include <Wire.h>
-
-// ----------------------- MPU variables -------------------------------------
-
-// Average gyro offsets of each axis in that order: X, Y, Z
-uint32_t gyro_offset[3] = { 0, 0, 0 };
-
-// Calculated angles from gyro's values in that order: X, Y, Z
-float gyro_angle[3] = { 0, 0, 0 };
-
-// Calculated angles from accelerometer's values in that order: X, Y, Z
-float acc_angle[3] = { 0, 0, 0 };
-
-// Total 3D acceleration vector in m/s²
-uint32_t acc_total_vector;
-
-// Calculated angular motion on each axis: Yaw, Pitch, Roll
-float angular_motions[3] = { 0, 0, 0 };
-
-/**
- * Real measures on 3 axis calculated from gyro AND accelerometer in that order : Yaw, Pitch, Roll
- *  - Left wing up implies a positive roll
- *  - Nose up implies a positive pitch
- *  - Nose right implies a positive yaw
- */
-float measures[3] = { 0, 0, 0 };
+#include "ConstantesPID.h"
 
 /**
  * Configure gyro and accelerometer precision as following:
@@ -79,39 +55,46 @@ void setupMpu6050Registers()
  *
  * This function might take ~2sec for 2000 samples.
  */
-void calibrateMpu6050(uint16_t *o_tu16_gyroOffset)
+void calibrateMpu6050(int16_t *o_ts16_gyroOffset)
 {
-  uint16_t max_samples = 2000;
+  uint16_t l_u16_max_samples = 2000;
   // The RAW values got from gyro (in °/sec) in that order: X, Y, Z
-  uint16_t tu16_gyroRaw[3];
+  int16_t l_ts16_gyroRaw[e_RepereOrthonormal_t::NbreAxes];
   // The RAW values got from accelerometer (in m/sec²) in that order: X, Y, Z
-  uint16_t tu16_accRaw[3];
+  int16_t l_ts16_accRaw[e_RepereOrthonormal_t::NbreAxes];
 
-  o_tu16_gyroOffset[X] = 0;
-  o_tu16_gyroOffset[Y] = 0;
-  o_tu16_gyroOffset[Z] = 0;
+  int32_t l_ts32_gyroOffset[e_RepereOrthonormal_t::NbreAxes];
 
-  for (uint16_t i = 0; i < max_samples; i++)
+  l_ts32_gyroOffset[e_RepereOrthonormal_t::X] = 0;
+  l_ts32_gyroOffset[e_RepereOrthonormal_t::Y] = 0;
+  l_ts32_gyroOffset[e_RepereOrthonormal_t::Z] = 0;
+
+  for (uint16_t i = 0; i < l_u16_max_samples; i++)
   {
-    readSensor(tu16_accRaw, tu16_gyroRaw);
+    readSensor(l_ts16_accRaw, l_ts16_gyroRaw);
 
-    o_tu16_gyroOffset[X] += tu16_gyroRaw[X];
-    o_tu16_gyroOffset[Y] += tu16_gyroRaw[Y];
-    o_tu16_gyroOffset[Z] += tu16_gyroRaw[Z];
+    l_ts32_gyroOffset[e_RepereOrthonormal_t::X] += l_ts16_gyroRaw[e_RepereOrthonormal_t::X];
+    l_ts32_gyroOffset[e_RepereOrthonormal_t::Y] += l_ts16_gyroRaw[e_RepereOrthonormal_t::Y];
+    l_ts32_gyroOffset[e_RepereOrthonormal_t::Z] += l_ts16_gyroRaw[e_RepereOrthonormal_t::Z];
 
     delay(3);
   }
 
   // Calculate average offsets
-  o_tu16_gyroOffset[X] /= max_samples;
-  o_tu16_gyroOffset[Y] /= max_samples;
-  o_tu16_gyroOffset[Z] /= max_samples;
+  l_ts32_gyroOffset[e_RepereOrthonormal_t::X] /= l_u16_max_samples;
+  l_ts32_gyroOffset[e_RepereOrthonormal_t::Y] /= l_u16_max_samples;
+  l_ts32_gyroOffset[e_RepereOrthonormal_t::Z] /= l_u16_max_samples;
+
+  o_ts16_gyroOffset[e_RepereOrthonormal_t::X] = l_ts32_gyroOffset[e_RepereOrthonormal_t::X];
+  o_ts16_gyroOffset[e_RepereOrthonormal_t::Y] = l_ts32_gyroOffset[e_RepereOrthonormal_t::Y];
+  o_ts16_gyroOffset[e_RepereOrthonormal_t::Z] = l_ts32_gyroOffset[e_RepereOrthonormal_t::Z];
+
 }
 
 /**
  * Request raw values from MPU6050.
  */
-void readSensor(uint16_t *o_tu16_accRaw, uint16_t *o_tu16_gyroRaw)
+void readSensor(int16_t *o_ts16_accRaw, int16_t *o_ts16_gyroRaw)
 {
   // MPU's temperature
   uint16_t temperature;
@@ -124,11 +107,11 @@ void readSensor(uint16_t *o_tu16_accRaw, uint16_t *o_tu16_gyroRaw)
   // Wait until all the bytes are received
   while (Wire.available() < 14);
 
-  o_tu16_accRaw[X] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the acc_raw[X] variable
-  o_tu16_accRaw[Y] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the acc_raw[Y] variable
-  o_tu16_accRaw[Z] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the acc_raw[Z] variable
+  o_ts16_accRaw[e_RepereOrthonormal_t::X] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the acc_raw[X] variable
+  o_ts16_accRaw[e_RepereOrthonormal_t::Y] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the acc_raw[Y] variable
+  o_ts16_accRaw[e_RepereOrthonormal_t::Z] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the acc_raw[Z] variable
   temperature = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the temperature variable
-  o_tu16_gyroRaw[X] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the gyro_raw[X] variable
-  o_tu16_gyroRaw[Y] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the gyro_raw[Y] variable
-  o_tu16_gyroRaw[Z] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the gyro_raw[Z] variable
+  o_ts16_gyroRaw[e_RepereOrthonormal_t::X] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the gyro_raw[X] variable
+  o_ts16_gyroRaw[e_RepereOrthonormal_t::Y] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the gyro_raw[Y] variable
+  o_ts16_gyroRaw[e_RepereOrthonormal_t::Z] = Wire.read() << 8 | Wire.read(); // Add the low and high byte to the gyro_raw[Z] variable
 }
