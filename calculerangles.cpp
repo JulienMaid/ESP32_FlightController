@@ -43,7 +43,7 @@ void ClassCalculerAngles::CalculerAngles()
   CalculerAnglesGyro();
   CalculerAnglesAccelerometre();
 
-  if (initialized)
+  if (m_b_GyrOInitialise)
   {
     // Correct the drift of the gyro with the accelerometer
     m_f_GyroAngle[e_RepereOrthonormal_t::X] = m_f_GyroAngle[e_RepereOrthonormal_t::X] * 0.9996
@@ -56,7 +56,7 @@ void ClassCalculerAngles::CalculerAngles()
     // At very first start, init gyro angles with accelerometer angles
     ResetAnglesGyro();
 
-    initialized = true;
+    m_b_GyrOInitialise = true;
   }
 
   // To dampen the pitch and roll angles a complementary filter is used

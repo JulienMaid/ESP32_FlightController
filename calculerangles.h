@@ -37,7 +37,7 @@ public:
   void DonnerMesures(float *o_pf_Mesures);
 
 private:
-  bool initialized = false;
+  bool m_b_GyrOInitialise = false;
 
   int16_t m_ts16_GyroRAW[e_RepereOrthonormal_t::NbreAxes] = { 0, 0, 0 };
   int16_t m_ts16_AccRAW[e_RepereOrthonormal_t::NbreAxes] = { 0, 0, 0 };
