@@ -10,12 +10,18 @@
 #include <string.h>
 #include <math.h>
 #include "MPU6050.h"
+#include "trace_debug.h"
 
 ClassCalculerAngles::ClassCalculerAngles()
 {
+  SEND_VTRACE(INFO, "Configuration MPU6050");
   setupMpu6050Registers();
 
+  SEND_VTRACE(INFO, "Calibration MPU6050...");
   ValeursOffsetGyroMPU6050();
+  SEND_VTRACE(INFO, "Calibration MPU6050 Faite");
+  SEND_VTRACE(INFO, "Offset Gyro: X:%d Y:%d Z:%d", m_ts16_GyroOffset[e_RepereOrthonormal_t::X],
+      m_ts16_GyroOffset[e_RepereOrthonormal_t::Y], m_ts16_GyroOffset[e_RepereOrthonormal_t::Z]);
 }
 
 ClassCalculerAngles::~ClassCalculerAngles()

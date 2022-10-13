@@ -9,11 +9,13 @@
 #include "OTAUpdate.h"
 #include "serveurUDP.h"
 #include "controleurMoteursFactory.h"
+#include "calculerangles.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
 
 ControleurMoteurs *g_pt_ControleurMoteurs = nullptr;
+ClassCalculerAngles *g_pt_CalculateurAngles = nullptr;
 
 //The setup function is called once at startup of the sketch
 void setup()
@@ -48,11 +50,15 @@ void setup()
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
       e_typeMoteur_t::MOTEUR_BRUSHED, 2, 4, 16, 17);
 
+  g_pt_CalculateurAngles = new ClassCalculerAngles;
+
 }
 
 // The loop function is called in an endless loop
 void loop()
 {
+  static uint32_t l_u32_TempsPrecedent = micros();
+  uint32_t l_u32_TempsCourant;
   std::string *l_pt_stringRxUdp = NULL;
 
   uint8_t var = 8;
@@ -80,7 +86,47 @@ void loop()
     }
   }
 
-  delay(100);
+  l_u32_TempsCourant = micros();
+
+  // Gestion overflow de micros(), se produit toutes les 1h10
+  if (l_u32_TempsCourant < l_u32_TempsPrecedent)
+  {
+    //TODO A gérer !!
+    l_u32_TempsPrecedent = l_u32_TempsCourant;
+  }
+
+  if (l_u32_TempsCourant >= (l_u32_TempsPrecedent + 4000))
+  {
+    static uint8_t l_u8_tempoTraces = 0;
+
+    float l_tf_mesures[e_ListeMouvements_t::NbreMouvements];
+    float l_tf_DeplacementsAngulaires[e_ListeMouvements_t::NbreMouvements];
+
+    l_u32_TempsPrecedent = l_u32_TempsCourant;
+
+    g_pt_CalculateurAngles->NouvellesValeursMPU6050();
+
+    g_pt_CalculateurAngles->CalculerAngles();
+
+    g_pt_CalculateurAngles->DonnerMesures(l_tf_mesures);
+    g_pt_CalculateurAngles->DonnerDeplacementsAngulaires(l_tf_DeplacementsAngulaires);
+
+    if (l_u8_tempoTraces != 0)
+    {
+      l_u8_tempoTraces--;
+    }
+    else
+    {
+      l_u8_tempoTraces = 40;
+
+      SEND_VTRACE(INFO, "Yaw: %4.3f - Pitch: %4.3f - Roll: %4.3f",
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Yaw],
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Pitch],
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll]);
+    }
+  }
+
+//  delay(100);
 
 //  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
 }
