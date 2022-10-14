@@ -12,7 +12,7 @@
 
 enum e_RepereOrthonormal_t : uint8_t
 {
-  X = 0, Y = 1, Z = 2
+  X = 0, Y = 1, Z = 2, NbreAxes
 };
 
 enum e_ListeVoies_t : uint8_t
