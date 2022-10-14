@@ -40,41 +40,41 @@ void ControleurPID::NouvellesValeursMouvementsAngulaires(float i_f_MvtYaw, float
 void ControleurPID::CalculerErreurs()
 {
   // Calcul de l'erreur courante
-  m_f_errors[e_ListeMouvements_t::Yaw] = angular_motions[e_ListeMouvements_t::Yaw]
+  m_tf_errors[e_ListeMouvements_t::Yaw] = angular_motions[e_ListeMouvements_t::Yaw]
       - pid_set_points[e_ListeMouvements_t::Yaw];
-  m_f_errors[e_ListeMouvements_t::Pitch] = angular_motions[e_ListeMouvements_t::Pitch]
+  m_tf_errors[e_ListeMouvements_t::Pitch] = angular_motions[e_ListeMouvements_t::Pitch]
       - pid_set_points[e_ListeMouvements_t::Pitch];
-  m_f_errors[e_ListeMouvements_t::Roll] = angular_motions[e_ListeMouvements_t::Roll]
+  m_tf_errors[e_ListeMouvements_t::Roll] = angular_motions[e_ListeMouvements_t::Roll]
       - pid_set_points[e_ListeMouvements_t::Roll];
 
   // Calcul de la somme des erreurs: Intregrale
-  m_f_error_sum[e_ListeMouvements_t::Yaw] += m_f_errors[e_ListeMouvements_t::Yaw];
-  m_f_error_sum[e_ListeMouvements_t::Pitch] += m_f_errors[e_ListeMouvements_t::Pitch];
-  m_f_error_sum[e_ListeMouvements_t::Roll] += m_f_errors[e_ListeMouvements_t::Roll];
+  m_tf_error_sum[e_ListeMouvements_t::Yaw] += m_tf_errors[e_ListeMouvements_t::Yaw];
+  m_tf_error_sum[e_ListeMouvements_t::Pitch] += m_tf_errors[e_ListeMouvements_t::Pitch];
+  m_tf_error_sum[e_ListeMouvements_t::Roll] += m_tf_errors[e_ListeMouvements_t::Roll];
 
   // Bornage des valeurs
-  m_f_error_sum[e_ListeMouvements_t::Yaw] = minMax(m_f_error_sum[e_ListeMouvements_t::Yaw],
-      m_dble_ValeurMvtMini / Ki[e_ListeMouvements_t::Yaw],
-      m_dble_ValeurMvtMaxi / Ki[e_ListeMouvements_t::Yaw]);
-  m_f_error_sum[e_ListeMouvements_t::Pitch] = minMax(m_f_error_sum[e_ListeMouvements_t::Pitch],
-      m_dble_ValeurMvtMini / Ki[e_ListeMouvements_t::Pitch],
-      m_dble_ValeurMvtMaxi / Ki[e_ListeMouvements_t::Pitch]);
-  m_f_error_sum[e_ListeMouvements_t::Roll] = minMax(m_f_error_sum[e_ListeMouvements_t::Roll],
-      m_dble_ValeurMvtMini / Ki[e_ListeMouvements_t::Roll],
-      m_dble_ValeurMvtMaxi / Ki[e_ListeMouvements_t::Roll]);
+  m_tf_error_sum[e_ListeMouvements_t::Yaw] = minMax(m_tf_error_sum[e_ListeMouvements_t::Yaw],
+      m_f_ValeurMvtMini / m_tf_Ki[e_ListeMouvements_t::Yaw],
+      m_f_ValeurMvtMaxi / m_tf_Ki[e_ListeMouvements_t::Yaw]);
+  m_tf_error_sum[e_ListeMouvements_t::Pitch] = minMax(m_tf_error_sum[e_ListeMouvements_t::Pitch],
+      m_f_ValeurMvtMini / m_tf_Ki[e_ListeMouvements_t::Pitch],
+      m_f_ValeurMvtMaxi / m_tf_Ki[e_ListeMouvements_t::Pitch]);
+  m_tf_error_sum[e_ListeMouvements_t::Roll] = minMax(m_tf_error_sum[e_ListeMouvements_t::Roll],
+      m_f_ValeurMvtMini / m_tf_Ki[e_ListeMouvements_t::Roll],
+      m_f_ValeurMvtMaxi / m_tf_Ki[e_ListeMouvements_t::Roll]);
 
   // Calcul de l'erreur différentielle : Dérivée
-  m_f_delta_err[e_ListeMouvements_t::Yaw] = m_f_errors[e_ListeMouvements_t::Yaw]
-      - m_f_previous_error[e_ListeMouvements_t::Yaw];
-  m_f_delta_err[e_ListeMouvements_t::Pitch] = m_f_errors[e_ListeMouvements_t::Pitch]
-      - m_f_previous_error[e_ListeMouvements_t::Pitch];
-  m_f_delta_err[e_ListeMouvements_t::Roll] = m_f_errors[e_ListeMouvements_t::Roll]
-      - m_f_previous_error[e_ListeMouvements_t::Roll];
+  m_tf_delta_err[e_ListeMouvements_t::Yaw] = m_tf_errors[e_ListeMouvements_t::Yaw]
+      - m_tf_previous_error[e_ListeMouvements_t::Yaw];
+  m_tf_delta_err[e_ListeMouvements_t::Pitch] = m_tf_errors[e_ListeMouvements_t::Pitch]
+      - m_tf_previous_error[e_ListeMouvements_t::Pitch];
+  m_tf_delta_err[e_ListeMouvements_t::Roll] = m_tf_errors[e_ListeMouvements_t::Roll]
+      - m_tf_previous_error[e_ListeMouvements_t::Roll];
 
   // Sauvegarder l'erreur contrainte pour le prochain cycle
-  m_f_previous_error[e_ListeMouvements_t::Yaw] = m_f_errors[e_ListeMouvements_t::Yaw];
-  m_f_previous_error[e_ListeMouvements_t::Pitch] = m_f_errors[e_ListeMouvements_t::Pitch];
-  m_f_previous_error[e_ListeMouvements_t::Roll] = m_f_errors[e_ListeMouvements_t::Roll];
+  m_tf_previous_error[e_ListeMouvements_t::Yaw] = m_tf_errors[e_ListeMouvements_t::Yaw];
+  m_tf_previous_error[e_ListeMouvements_t::Pitch] = m_tf_errors[e_ListeMouvements_t::Pitch];
+  m_tf_previous_error[e_ListeMouvements_t::Roll] = m_tf_errors[e_ListeMouvements_t::Roll];
 }
 
 uint8_t ControleurPID::RecupererNouvellesConsignesMoteurs(uint16_t *o_u16_AvG, uint16_t *o_u16_AvD,
@@ -90,17 +90,21 @@ uint8_t ControleurPID::RecupererNouvellesConsignesMoteurs(uint16_t *o_u16_AvG, u
 
 void ControleurPID::ResetPID(void)
 {
-  m_f_errors[e_ListeMouvements_t::Yaw] = 0;
-  m_f_errors[e_ListeMouvements_t::Pitch] = 0;
-  m_f_errors[e_ListeMouvements_t::Roll] = 0;
+  m_tf_errors[e_ListeMouvements_t::Yaw] = 0;
+  m_tf_errors[e_ListeMouvements_t::Pitch] = 0;
+  m_tf_errors[e_ListeMouvements_t::Roll] = 0;
 
-  m_f_error_sum[e_ListeMouvements_t::Yaw] = 0;
-  m_f_error_sum[e_ListeMouvements_t::Pitch] = 0;
-  m_f_error_sum[e_ListeMouvements_t::Roll] = 0;
+  m_tf_error_sum[e_ListeMouvements_t::Yaw] = 0;
+  m_tf_error_sum[e_ListeMouvements_t::Pitch] = 0;
+  m_tf_error_sum[e_ListeMouvements_t::Roll] = 0;
 
-  m_f_previous_error[e_ListeMouvements_t::Yaw] = 0;
-  m_f_previous_error[e_ListeMouvements_t::Pitch] = 0;
-  m_f_previous_error[e_ListeMouvements_t::Roll] = 0;
+  m_tf_delta_err[e_ListeMouvements_t::Yaw] = 0;
+  m_tf_delta_err[e_ListeMouvements_t::Pitch] = 0;
+  m_tf_delta_err[e_ListeMouvements_t::Roll] = 0;
+
+  m_tf_previous_error[e_ListeMouvements_t::Yaw] = 0;
+  m_tf_previous_error[e_ListeMouvements_t::Pitch] = 0;
+  m_tf_previous_error[e_ListeMouvements_t::Roll] = 0;
 }
 
 ControleurPID* ControleurPID::RecupererInstance(void)
@@ -149,20 +153,20 @@ void ControleurPID::ActualiserControlleurPID()
   if (m_u32_Throttle >= 1012)
   {
     // PID = e.Kp + ∫e.Ki + Δe.Kd
-    l_f_YawPid = (m_f_errors[e_ListeMouvements_t::Yaw] * Kp[e_ListeMouvements_t::Yaw])
-        + (m_f_error_sum[e_ListeMouvements_t::Yaw] * Ki[e_ListeMouvements_t::Yaw])
-        + (m_f_delta_err[e_ListeMouvements_t::Yaw] * Kd[e_ListeMouvements_t::Yaw]);
-    l_f_PitchPid = (m_f_errors[e_ListeMouvements_t::Pitch] * Kp[e_ListeMouvements_t::Pitch])
-        + (m_f_error_sum[e_ListeMouvements_t::Pitch] * Ki[e_ListeMouvements_t::Pitch])
-        + (m_f_delta_err[e_ListeMouvements_t::Pitch] * Kd[e_ListeMouvements_t::Pitch]);
-    l_f_RollPid = (m_f_errors[e_ListeMouvements_t::Roll] * Kp[e_ListeMouvements_t::Roll])
-        + (m_f_error_sum[e_ListeMouvements_t::Roll] * Ki[e_ListeMouvements_t::Roll])
-        + (m_f_delta_err[e_ListeMouvements_t::Roll] * Kd[e_ListeMouvements_t::Roll]);
+    l_f_YawPid = (m_tf_errors[e_ListeMouvements_t::Yaw] * m_tf_Kp[e_ListeMouvements_t::Yaw])
+        + (m_tf_error_sum[e_ListeMouvements_t::Yaw] * m_tf_Ki[e_ListeMouvements_t::Yaw])
+        + (m_tf_delta_err[e_ListeMouvements_t::Yaw] * m_tf_Kd[e_ListeMouvements_t::Yaw]);
+    l_f_PitchPid = (m_tf_errors[e_ListeMouvements_t::Pitch] * m_tf_Kp[e_ListeMouvements_t::Pitch])
+        + (m_tf_error_sum[e_ListeMouvements_t::Pitch] * m_tf_Ki[e_ListeMouvements_t::Pitch])
+        + (m_tf_delta_err[e_ListeMouvements_t::Pitch] * m_tf_Kd[e_ListeMouvements_t::Pitch]);
+    l_f_RollPid = (m_tf_errors[e_ListeMouvements_t::Roll] * m_tf_Kp[e_ListeMouvements_t::Roll])
+        + (m_tf_error_sum[e_ListeMouvements_t::Roll] * m_tf_Ki[e_ListeMouvements_t::Roll])
+        + (m_tf_delta_err[e_ListeMouvements_t::Roll] * m_tf_Kd[e_ListeMouvements_t::Roll]);
 
     // Keep values within acceptable range. TODO export hard-coded values in variables/const
-    l_f_YawPid = minMax(l_f_YawPid, m_dble_ValeurMvtMini, m_dble_ValeurMvtMaxi);
-    l_f_PitchPid = minMax(l_f_PitchPid, m_dble_ValeurMvtMini, m_dble_ValeurMvtMaxi);
-    l_f_RollPid = minMax(l_f_RollPid, m_dble_ValeurMvtMini, m_dble_ValeurMvtMaxi);
+    l_f_YawPid = minMax(l_f_YawPid, m_f_ValeurMvtMini, m_f_ValeurMvtMaxi);
+    l_f_PitchPid = minMax(l_f_PitchPid, m_f_ValeurMvtMini, m_f_ValeurMvtMaxi);
+    l_f_RollPid = minMax(l_f_RollPid, m_f_ValeurMvtMini, m_f_ValeurMvtMaxi);
 
     // Calculate pulse duration for each ESC
     m_u32_ImpulsionEsc1 = m_u32_Throttle - l_f_RollPid - l_f_PitchPid + l_f_YawPid;

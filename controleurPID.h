@@ -63,22 +63,22 @@ private:
   uint32_t *m_tu32_CorrespondanceVoies[e_ListeMouvements_t::NbreMouvements];
 
   // ------------- Global variables used for PID controller --------------------
-  float pid_set_points[3] = { 0, 0, 0 }; // Yaw, Pitch, Roll
+  float pid_set_points[e_ListeMouvements_t::NbreMouvements] = { 0, 0, 0 }; // Yaw, Pitch, Roll
   // Errors
-  float m_f_errors[3];            // Measured errors (compared to instructions) : [Yaw, Pitch, Roll]
-  float m_f_delta_err[3] = { 0, 0, 0 }; // Error deltas in that order   : Yaw, Pitch, Roll
-  float m_f_error_sum[3] = { 0, 0, 0 }; // Error sums (used for integral component) : [Yaw, Pitch, Roll]
-  float m_f_previous_error[3] = { 0, 0, 0 }; // Last errors (used for derivative component) : [Yaw, Pitch, Roll]
+  float m_tf_errors[e_ListeMouvements_t::NbreMouvements]; // Measured errors (compared to instructions) : [Yaw, Pitch, Roll]
+  float m_tf_delta_err[e_ListeMouvements_t::NbreMouvements] = { 0, 0, 0 }; // Error deltas in that order   : Yaw, Pitch, Roll
+  float m_tf_error_sum[e_ListeMouvements_t::NbreMouvements] = { 0, 0, 0 }; // Error sums (used for integral component) : [Yaw, Pitch, Roll]
+  float m_tf_previous_error[e_ListeMouvements_t::NbreMouvements] = { 0, 0, 0 }; // Last errors (used for derivative component) : [Yaw, Pitch, Roll]
   // PID coefficients
-  float Kp[3] = { 4.0, 1.3, 1.3 };    // P coefficients in that order : Yaw, Pitch, Roll
-  float Ki[3] = { 0.02, 0.04, 0.04 }; // I coefficients in that order : Yaw, Pitch, Roll
-  float Kd[3] = { 0, 18, 18 };        // D coefficients in that order : Yaw, Pitch, Roll
+  float m_tf_Kp[e_ListeMouvements_t::NbreMouvements] = { 4.0, 1.3, 1.3 }; // P coefficients in that order : Yaw, Pitch, Roll
+  float m_tf_Ki[e_ListeMouvements_t::NbreMouvements] = { 0.02, 0.04, 0.04 }; // I coefficients in that order : Yaw, Pitch, Roll
+  float m_tf_Kd[e_ListeMouvements_t::NbreMouvements] = { 0, 18, 18 }; // D coefficients in that order : Yaw, Pitch, Roll
   // ---------------------------------------------------------------------------
 
-  float angular_motions[3] = { 0, 0, 0 };
+  float angular_motions[e_ListeMouvements_t::NbreMouvements] = { 0, 0, 0 };
 
-  static constexpr float m_dble_ValeurMvtMini = -400.0;
-  static constexpr float m_dble_ValeurMvtMaxi = 400.0;
+  static constexpr float m_f_ValeurMvtMini = -400.0;
+  static constexpr float m_f_ValeurMvtMaxi = 400.0;
 
   static constexpr uint32_t m_u32_impulsionMini = 1100;
   static constexpr uint32_t m_u32_impulsionMaxi = 2000;
