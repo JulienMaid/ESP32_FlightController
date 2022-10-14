@@ -93,6 +93,7 @@ void loop()
   {
     //TODO A gérer !!
     l_u32_TempsPrecedent = l_u32_TempsCourant;
+    SEND_VTRACE(INFO, "OverFlow Micros()");
   }
 
   if (l_u32_TempsCourant >= (l_u32_TempsPrecedent + 4000))
