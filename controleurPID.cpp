@@ -83,7 +83,7 @@ uint8_t ControleurPID::RecupererNouvellesConsignesMoteurs(uint16_t *o_u16_AvG, u
   *o_u16_AvG = m_u32_ImpulsionEsc1;
   *o_u16_AvD = m_u32_ImpulsionEsc2;
   *o_u16_ArG = m_u32_ImpulsionEsc3;
-  *o_u16_ArG = m_u32_ImpulsionEsc4;
+  *o_u16_ArD = m_u32_ImpulsionEsc4;
 
   return 0;
 }
