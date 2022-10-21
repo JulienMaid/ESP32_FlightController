@@ -62,21 +62,34 @@ void loop()
     std::string l_t_localMsg = *l_pt_stringRxUdp;
     delete l_pt_stringRxUdp;
 
+    std::stringstream l_t_Stream(l_t_localMsg);
+    std::string l_t_Arg1;
+
     SEND_VTRACE(INFO, "Core %d; RX dans loop: %s", xPortGetCoreID(), l_t_localMsg.c_str());
 
-    if (l_t_localMsg == "OFF")
+    l_t_Stream >> l_t_Arg1;
+
+    if (l_t_Arg1 == "Trace")
     {
-      SEND_VTRACE(INFO, "Moteurs OFF");
+      DecodeOrdreConfigOrdre(l_t_Stream);
     }
-    else if (l_t_localMsg >= "ON")
+    else
     {
 
-      uint16_t u16_Val = 0;
-      sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
+      if (l_t_localMsg == "OFF")
+      {
+        SEND_VTRACE(INFO, "Moteurs OFF");
+      }
+      else if (l_t_localMsg >= "ON")
+      {
 
-      SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
+        uint16_t u16_Val = 0;
+        sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
 
-      g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(20, 40, 60, 80);
+        SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
+
+        g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(20, 40, 60, 80);
+      }
     }
   }
 

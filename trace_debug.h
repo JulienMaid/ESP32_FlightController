@@ -1,4 +1,4 @@
-// @file trace_debug.h
+// @file trace_deb.h
 /// <b>Date de creation:</b> 16/12/2015                                                      <br>
 ///                                                                                          <br>
 /// @brief Implementation d'un systeme de trace pour aider au debugage                       <br>
@@ -41,6 +41,7 @@
 
 #include <string.h>
 #include <stdarg.h>
+#include <sstream>
 
 #if !defined(__FILENAME__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
@@ -177,5 +178,7 @@ const char* Get_Text_Type_Trace(type_trace_t Type_Trace);
 uint8_t Conv_NumToStr(uint32_t Num, char *String);
 
 void ThreadTxTrace(void *Parametre);
+
+uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder);
 
 #endif /* TRACE_DEBUG_H */

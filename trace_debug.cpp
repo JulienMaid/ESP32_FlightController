@@ -22,7 +22,7 @@
 
 #define TRACE_DEBUG_C
 
-#define ACTIVER_TRACES_UDP
+//#define ACTIVER_TRACES_UDP
 
 //#define DESACTIVER_TRACE_SERIE
 
@@ -62,17 +62,13 @@ uint8_t Buffer_TX_Trace[30];
 /// @brief Niveau maximum de trace a remonter
 type_trace_t Max_Debug_Level = INFO;
 
-// Libelles des evenements timer
-const char Txt_Timer_Event_Init[] = "Init";
-const char Txt_Timer_Event_Start[] = "Start";
-const char Txt_Timer_Event_Stop[] = "Stop";
-const char Txt_Timer_Event_Halt[] = "Halt";
-const char Txt_Timer_Event_Top[] = "Top!";
-const char Txt_Timer_Event_FinTop[] = "Fin Top!";
-const char Txt_Timer_Event_Delete[] = "Deleted";
-const char Txt_Timer_Event_SetValue[] = "SetValue";
-
 QueueHandle_t g_pt_queueTraces;
+
+bool g_b_TraceUDP;
+bool g_b_TraceSerie;
+
+std::string g_t_adresseIpServeur;
+uint16_t g_u16_portTracesUDP;
 
 //********************************
 //* Implementation des fonctions *
@@ -598,4 +594,49 @@ void ThreadTxTrace(void *Parametre)
 
     }
   }
+}
+
+uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
+{
+  uint8_t l_u8_codeRetour;
+  std::string l_t_Arg1, l_t_Arg2;
+
+  p_t_TrameADecoder >> l_t_Arg1 >> l_t_Arg2;
+
+  if (l_t_Arg1 == "IPServeur")
+  {
+    g_t_adresseIpServeur = l_t_Arg2;
+  }
+  else if (l_t_Arg1 == "PortServeur")
+  {
+
+  }
+  else if (l_t_Arg1 == "UDP")
+  {
+    if (l_t_Arg2 == "ON")
+    {
+      g_b_TraceUDP = true;
+    }
+    else
+    {
+      g_b_TraceUDP = false;
+    }
+  }
+  else if (l_t_Arg1 == "Serie")
+  {
+    if (l_t_Arg2 == "ON")
+    {
+      g_b_TraceSerie = true;
+    }
+    else
+    {
+      g_b_TraceSerie = false;
+    }
+  }
+  else if (l_t_Arg1 == "NiveauTrace")
+  {
+
+  }
+
+  return l_u8_codeRetour;
 }
