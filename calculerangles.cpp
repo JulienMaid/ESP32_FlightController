@@ -149,7 +149,7 @@ void ClassCalculerAngles::DonnerDeplacementsAngulaires(float *o_pf_DeplacementsA
 
 void ClassCalculerAngles::DonnerMesures(float *o_pf_Mesures)
 {
-  memcpy(o_pf_Mesures, m_tf_Mesures, sizeof(m_tf_DeplacementsAngulaires));
+  memcpy(o_pf_Mesures, m_tf_Mesures, sizeof(m_tf_Mesures));
 }
 
 void ClassCalculerAngles::NouvellesValeursMPU6050()
