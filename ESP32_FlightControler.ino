@@ -10,12 +10,14 @@
 #include "serveurUDP.h"
 #include "controleurMoteursFactory.h"
 #include "calculerangles.h"
+#include "controleurPID.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
 
 ControleurMoteurs *g_pt_ControleurMoteurs = nullptr;
 ClassCalculerAngles *g_pt_CalculateurAngles = nullptr;
+ControleurPID *g_pt_ControleurPID = nullptr;
 
 //The setup function is called once at startup of the sketch
 void setup()
@@ -51,6 +53,8 @@ void setup()
       e_typeMoteur_t::MOTEUR_BRUSHED, 2, 4, 16, 17);
 
   g_pt_CalculateurAngles = new ClassCalculerAngles;
+
+  g_pt_ControleurPID = new ControleurPID;
 
 }
 
@@ -103,6 +107,11 @@ void loop()
     float l_tf_mesures[e_ListeMouvements_t::NbreMouvements];
     float l_tf_DeplacementsAngulaires[e_ListeMouvements_t::NbreMouvements];
 
+    uint16_t l_u16_MoteurAvG = 0;
+    uint16_t l_u16_MoteurAvD = 0;
+    uint16_t l_u16_MoteurArG = 0;
+    uint16_t l_u16_MoteurArD = 0;
+
     l_u32_TempsPrecedent = l_u32_TempsCourant;
 
     g_pt_CalculateurAngles->NouvellesValeursMPU6050();
@@ -112,6 +121,17 @@ void loop()
     g_pt_CalculateurAngles->DonnerMesures(l_tf_mesures);
     g_pt_CalculateurAngles->DonnerDeplacementsAngulaires(l_tf_DeplacementsAngulaires);
 
+    g_pt_ControleurPID->NouvellesValeursMesures(l_tf_mesures[e_ListeMouvements_t::Yaw],
+        l_tf_mesures[e_ListeMouvements_t::Pitch], l_tf_mesures[e_ListeMouvements_t::Roll]);
+
+    g_pt_ControleurPID->NouvellesValeursMouvementsAngulaires(
+        l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Yaw],
+        l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Pitch],
+        l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll]);
+
+    g_pt_ControleurPID->RecupererNouvellesConsignesMoteurs(l_u16_MoteurAvG, l_u16_MoteurAvD,
+        l_u16_MoteurArG, l_u16_MoteurArD);
+
     if (l_u8_tempoTraces != 0)
     {
       l_u8_tempoTraces--;
@@ -120,10 +140,13 @@ void loop()
     {
       l_u8_tempoTraces = 40;
 
-      SEND_VTRACE(INFO, "Yaw: %4.3f - Pitch: %4.3f - Roll: %4.3f",
+      SEND_VTRACE(INFO,
+          "Depl Yaw: %4.3f - Depl Pitch: %4.3f - Depl Roll: %4.3f Mes Yaw: %4.3f - Mes Pitch: %4.3f - Mes Roll: %4.3f",
           l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Yaw],
           l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Pitch],
-          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll]);
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll],
+          l_tf_mesures[e_ListeMouvements_t::Yaw], l_tf_mesures[e_ListeMouvements_t::Pitch],
+          l_tf_mesures[e_ListeMouvements_t::Roll]);
     }
   }
 
