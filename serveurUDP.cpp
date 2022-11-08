@@ -6,7 +6,7 @@
 AsyncUDP udp;
 //char tc_RxBuffer[255];
 //bool g_b_threadActif;
-QueueHandle_t g_pt_queue;
+QueueHandle_t g_pt_queue = nullptr;
 
 uint8_t initServeurUDP(uint16_t i_u16_portEcoute)
 {

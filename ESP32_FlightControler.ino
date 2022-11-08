@@ -8,6 +8,7 @@
 #include "outils_wifi.h"
 #include "OTAUpdate.h"
 #include "serveurUDP.h"
+#include "serveurSerial.h"
 #include "controleurMoteursFactory.h"
 
 Ticker g_t_blinker;
@@ -42,6 +43,8 @@ void setup()
 
   initServeurUDP(4321);
 
+  initServeurSerial();
+
 //  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
 //      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
 
@@ -54,6 +57,7 @@ void setup()
 void loop()
 {
   std::string *l_pt_stringRxUdp = NULL;
+  std::string l_t_ReceptionUart;
 
   uint8_t var = 8;
 
