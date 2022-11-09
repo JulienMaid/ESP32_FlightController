@@ -605,19 +605,22 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
   if (l_t_Arg1 == "IPServeur")
   {
     g_t_adresseIpServeur = l_t_Arg2;
+    SEND_VTRACE(INFO, "IPServeur: %s", g_t_adresseIpServeur.c_str());
   }
   else if (l_t_Arg1 == "PortServeur")
   {
-
+    SEND_VTRACE(INFO, "Port Serveur: %s", l_t_Arg2.c_str());
   }
   else if (l_t_Arg1 == "UDP")
   {
     if (l_t_Arg2 == "ON")
     {
+      SEND_VTRACE(INFO, "Trace UDP ON");
       g_b_TraceUDP = true;
     }
     else
     {
+      SEND_VTRACE(INFO, "Trace UDP OFF");
       g_b_TraceUDP = false;
     }
   }
@@ -625,10 +628,12 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
   {
     if (l_t_Arg2 == "ON")
     {
+      SEND_VTRACE(INFO, "Trace Serie ON");
       g_b_TraceSerie = true;
     }
     else
     {
+      SEND_VTRACE(INFO, "Trace Serie OFF");
       g_b_TraceSerie = false;
     }
   }

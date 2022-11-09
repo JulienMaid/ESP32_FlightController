@@ -75,18 +75,17 @@ void loop()
 
     l_t_Stream >> l_t_Arg1;
 
-    if (l_t_Arg1 == "Trace")
+    if (l_t_Arg1 == "Traces")
     {
       DecodeOrdreConfigOrdre(l_t_Stream);
     }
     else
     {
-
-      if (l_t_localMsg == "OFF")
+      if (l_t_Arg1 == "OFF")
       {
         SEND_VTRACE(INFO, "Moteurs OFF");
       }
-      else if (l_t_localMsg >= "ON")
+      else if (l_t_Arg1 == "ON")
       {
 
         uint16_t u16_Val = 0;
