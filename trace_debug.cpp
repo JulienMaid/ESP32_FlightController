@@ -40,17 +40,11 @@
 #include <string.h>
 #include <Arduino.h>
 
-#if defined(ACTIVER_TRACES_UDP)
 #include <WiFiUdp.h>
 #define IP_DEST_UDP "192.168.79.10"
 #define PORT_DEST_UDP 1234
-#endif
 
-#if defined(DESACTIVER_TRACE_SERIE)
-#define Send_String_UARTX(a,b) {}
-#else
 #define Send_String_UARTX(a,b) Serial.print(a)
-#endif
 
 //*********************
 //* Variables privees *
@@ -64,8 +58,8 @@ type_trace_t Max_Debug_Level = INFO;
 
 QueueHandle_t g_pt_queueTraces;
 
-bool g_b_TraceUDP;
-bool g_b_TraceSerie;
+bool g_b_TraceUDP = false;
+bool g_b_TraceSerie = true;
 
 std::string g_t_adresseIpServeur;
 uint16_t g_u16_portTracesUDP;
@@ -566,31 +560,36 @@ void ThreadTxTrace(void *Parametre)
       std::string l_t_localMsg = *l_pt_stringRxUdp;
       delete l_pt_stringRxUdp;
 
-#if defined(ACTIVER_TRACES_UDP)
-      WiFiUDP l_t_udp;
-      uint8_t u8_retourFct;
-
-      l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
-      l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
-      u8_retourFct = l_t_udp.endPacket();
-
-      if (u8_retourFct != 1)
+      if (g_b_TraceUDP == true)
       {
-        // Si l'envoie ne s'estpas bien passé, on attend quelques ticks et on retente une 2nde fois
-        vTaskDelay(10);
-        const unsigned char tu8_buff[] = "2nd...";
+//#if defined(ACTIVER_TRACES_UDP)
+        WiFiUDP l_t_udp;
+        uint8_t u8_retourFct;
 
         l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
-        l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
         l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
-        l_t_udp.endPacket();
+        u8_retourFct = l_t_udp.endPacket();
+
+        if (u8_retourFct != 1)
+        {
+          // Si l'envoie ne s'estpas bien passé, on attend quelques ticks et on retente une 2nde fois
+          vTaskDelay(10);
+          const unsigned char tu8_buff[] = "2nd...";
+
+          l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+          l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
+          l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+          l_t_udp.endPacket();
+        }
       }
+//#endif
 
-#endif
-
-#if !defined(DESACTIVER_TRACE_SERIE)
-      Serial.println(l_t_localMsg.c_str());
-#endif
+      if (g_b_TraceSerie == true)
+      {
+//#if !defined(DESACTIVER_TRACE_SERIE)
+        Serial.println(l_t_localMsg.c_str());
+//#endif
+      }
 
     }
   }

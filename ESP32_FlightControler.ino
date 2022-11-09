@@ -16,6 +16,8 @@ String g_t_MsgDemarrage("ESP32 Flight controller");
 
 ControleurMoteurs *g_pt_ControleurMoteurs = nullptr;
 
+QueueHandle_t g_pt_queue = nullptr;
+
 //The setup function is called once at startup of the sketch
 void setup()
 {
@@ -41,9 +43,9 @@ void setup()
 
   SEND_VTRACE(INFO, "Frequence CPU = %d MHz", getCpuFrequencyMhz());
 
-  initServeurUDP(4321);
+  initServeurUDP(4321, &g_pt_queue);
 
-  initServeurSerial();
+  initServeurSerial(&g_pt_queue);
 
 //  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
 //      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);

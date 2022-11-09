@@ -9,8 +9,9 @@
 #define SERVEURSERIAL_H_
 
 #include <stdint.h>
+#include <Arduino.h>
 
-uint8_t initServeurSerial(void);
+uint8_t initServeurSerial(QueueHandle_t *i_ppt_queue);
 
 void onSerialCallBack(void);
 

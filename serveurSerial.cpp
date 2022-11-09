@@ -1,11 +1,20 @@
 #include "serveurSerial.h"
 #include <Arduino.h>
+#include "trace_debug.h"
 
-extern QueueHandle_t g_pt_queue;
+QueueHandle_t *g_ppt_queueSerial;
 
-uint8_t initServeurSerial(void)
+uint8_t initServeurSerial(QueueHandle_t *i_ppt_queue)
 {
   uint8_t u8_CR = -1;
+
+  if (*i_ppt_queue == nullptr)
+  {
+    *i_ppt_queue = xQueueCreate(10, sizeof(std::string*));
+    SEND_VTRACE(DBG1, "Init Queue");
+  }
+
+  g_ppt_queueSerial = i_ppt_queue;
 
   Serial.onReceive(onSerialCallBack);
 
@@ -31,7 +40,7 @@ void onSerialCallBack(void)
       l_ts8_BufferRx[l_u16_octetsRecus - 1] = 0;
       l_t_StringRX.append(l_ts8_BufferRx);
       l_t_StringQueue = new std::string(l_t_StringRX);
-      xQueueSend(g_pt_queue, &l_t_StringQueue, 0);
+      xQueueSend(*g_ppt_queueSerial, &l_t_StringQueue, 0);
       l_t_StringRX.clear();
     }
     else
