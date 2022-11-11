@@ -1,4 +1,4 @@
-// @file trace_debug.h
+// @file trace_deb.h
 /// <b>Date de creation:</b> 16/12/2015                                                      <br>
 ///                                                                                          <br>
 /// @brief Implementation d'un systeme de trace pour aider au debugage                       <br>
@@ -23,24 +23,12 @@
 #ifndef TRACE_DEBUG_H
 #define TRACE_DEBUG_H
 
-#define UTILISER_TIMER_SW			0
-#define UTILISER_NUMERO_VERSION_H	0
-
 #include <stdint.h>
 #include "def_debug_type.h"
 
-#if UTILISER_TIMER_SW == 1
-#include "timer_sw.h"
-#endif
-
-#include "bank_text_debug.h"
-
-#if UTILISER_NUMERO_VERSION_H == 1
-#include "numero_version.h"
-#endif
-
 #include <string.h>
 #include <stdarg.h>
+#include <sstream>
 
 #if !defined(__FILENAME__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
@@ -53,53 +41,12 @@
 // Definiton pour stocker les textes correspondants au differents types de traces
 typedef struct
 {
-  type_trace_t Type_Trace;
+  e_type_trace_t Type_Trace;
   const uint8_t *p_Text_Data;
 } Txt_Type_Trace_t;
 
-typedef struct
-{
-  char *p_Text_Data;
-  uint32_t Value;
-} Bank_Grouped_Values_t;
-
-struct Trace_Methodes
-{
-  void (*Init)(void);
-  uint8_t (*Trace_Simple)(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horodatage);
-  uint8_t (*Trace_Num)(type_trace_t Type_Trace, const char Txt_Donnees[], uint32_t Num,
-      bool Horodatage);
-#if UTILISER_NUMERO_VERSION_H == 1
-	uint8_t (* Trace_Version)(type_trace_t Type_Trace, const struct Struct_Version * Data, bool Horodatage);
-#endif
-  uint8_t (*Trace_Buffer)(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
-      uint8_t Size, bool Horodatage);
-  uint8_t (*Trace_Test_Result)(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t Num,
-      bool Horodatage);
-#if UTILISER_TIMER_SW == 1
-	uint8_t (* Trace_Timer)(type_trace_t Type_Trace, TimerEvent_t * Timer, type_timer_t Type_Event, bool Horodatage);
-#endif
-  void (*Set_Max_Debug_Level)(type_trace_t Level);
-};
-
-#ifdef TRACE_DEBUG_C
 /// @brief Definition des textes des types de trace possibles
-Txt_Type_Trace_t Table_Type_Trace[10] =
-{
-  { NONE, Txt_None},
-  { ERROR, Txt_Error},
-  { INFO, Txt_Info},
-  { TEST_SECU_RESULTS, Txt_Tst_Secu_Results},
-  { DBG1, Txt_Debug1},
-  { DBG2, Txt_Debug2},
-  { DBG3, Txt_Debug3},
-  { DBG4, Txt_Debug4},
-  { DBGX, Txt_DebugSpecif},
-  { ALL, Txt_All}
-};
-#else
 extern Txt_Type_Trace_t Table_Type_Trace[10];
-#endif
 
 //*************************************
 //* Prototype des fonctions publiques *
@@ -118,19 +65,22 @@ void Init_Trace_Debug(void);
 #define SEND_VTRACE(typeTrace, TxtDonnees, ...)  \
     Send_VTrace((typeTrace), true, __FILENAME__, __FUNCTION__, __LINE__, (TxtDonnees), ##__VA_ARGS__)
 
-uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
-    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...);
-
 /**
- * @brief Envoi une trace sur l'UART
+ * @brief Envoi d'un trace avec arguments variables facon "Printf"
  * @param Type_Trace Niveau de trace (pour permettre le filtrage des traces)
- * @param Txt_Donnees Donnees a remonter sur la trace
  * @param Horodatage Demande ou non l'horodatage de la trace
+ * @param i_ps8_nomFichier Nom du ficher d'où est appelle la fonction de trace
+ * @param i_ps8_nomFonction Nom de la fonction d'où est appelle la fonction de trace
+ * @param i_u16_numeroLigne Numero de la ligne d'où est appelle la fonction de trace
+ * @param Buffer Pointeur vers le buffer de donnees a remonter
+ * @param Txt_Donnees Libelle de la donnee a remonter sur la trace
  * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
+ *
+ * Cette fonction peut être appellee seule, mais preferer l'appel à travers SEND_VTRACE
+ * qui prendra en charge de renseigner les champs nomFicher, nomFonction, numeroLigne
  */
-uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horodatage = true,
-    const char *i_ps8_nomFichier = NULL, const char *i_ps8_nomFonction = NULL,
-    uint16_t i_u16_numeroLigne = 0);
+uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
+    const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...);
 
 /**
  * @brief Envoi en trace le contenu d'un buffer (attention taille = 32 octets !!)
@@ -141,32 +91,32 @@ uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horod
  * @param Horodatage Demande ou non l'horodatage de la trace
  * @return 0 si OK, 2 si Type de trace trop eleve, 1 si erreurs
  */
-uint8_t Send_Trace_Buffer(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
+uint8_t Send_Trace_Buffer(e_type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
     uint8_t Size, bool Horodatage = true);
 
 /**
  * @brief Fixe le niveau maximum de trace a remonter
  * @param Level Niveau maximum de trace a afficher
  */
-void Set_Max_Debug_Level(type_trace_t Level);
+void Set_Max_Debug_Level(e_type_trace_t Level);
 
 /**
  * @brief Retourne le niveau maximum de trace a remonter
  */
-type_trace_t Get_Max_Debug_Level(void);
+e_type_trace_t Get_Max_Debug_Level(void);
 
 /**
  * @brief Test si le niveau de trace est suffisant pour etre ressorti
  * @param Level
  * @return 0 si OK, 1 sinon
  */
-uint8_t Test_Trace_Level(type_trace_t Level);
+uint8_t Test_Trace_Level(e_type_trace_t Level);
 
 /**
  * @brief Renvoi un pointeur vers le texte correspond au niveau de trace
  * @return pointeur vers le texte correspondant, sinon pointeur NULL
  */
-const char* Get_Text_Type_Trace(type_trace_t Type_Trace);
+const char* Get_Text_Type_Trace(e_type_trace_t Type_Trace);
 
 /**
  * @brief Realise la fonction suivante: sprintf(String,"%lu") sans sprintf
@@ -177,5 +127,7 @@ const char* Get_Text_Type_Trace(type_trace_t Type_Trace);
 uint8_t Conv_NumToStr(uint32_t Num, char *String);
 
 void ThreadTxTrace(void *Parametre);
+
+uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder);
 
 #endif /* TRACE_DEBUG_H */

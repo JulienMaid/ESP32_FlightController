@@ -67,14 +67,10 @@ void ControleurMoteursBrushed::FixerNouvellesConsignePourMille(uint16_t i_u16_Co
   l_u16_RapportCyclique_ArG = map(i_u16_ConsigneMoteurArG, 0, 1000, 0, m_u32_RapportCycliqueMax);
   l_u16_RapportCyclique_ArD = map(i_u16_ConsigneMoteurArD, 0, 1000, 0, m_u32_RapportCycliqueMax);
 
-  SEND_VTRACE(INFO, "AvG: %d, AvD: %d; ArG: %d, ArD: %d", l_u16_RapportCyclique_AvG,
-      l_u16_RapportCyclique_AvD, l_u16_RapportCyclique_ArG, l_u16_RapportCyclique_ArD);
-
   ledcWrite(CANAL_AVG, l_u16_RapportCyclique_AvG);
   ledcWrite(CANAL_AVD, l_u16_RapportCyclique_AvD);
   ledcWrite(CANAL_ARG, l_u16_RapportCyclique_ArG);
   ledcWrite(CANAL_ARD, l_u16_RapportCyclique_ArD);
-
 }
 
 void ControleurMoteursBrushed::FixerNouvellesConsigneImpulsion(uint16_t i_u16_ConsigneMoteurAvG,
