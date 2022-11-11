@@ -58,10 +58,7 @@ void setup()
 // The loop function is called in an endless loop
 void loop()
 {
-  std::string *l_pt_stringRxUdp = NULL;
-  std::string l_t_ReceptionUart;
-
-  uint8_t var = 8;
+  std::string *l_pt_stringRxUdp = nullptr;
 
   if (xQueueReceive(g_pt_queue, &l_pt_stringRxUdp, 0) == pdTRUE)
   {

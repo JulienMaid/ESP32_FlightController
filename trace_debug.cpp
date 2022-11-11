@@ -35,14 +35,11 @@
 #include "RTC_soft.h"
 
 #include <stdint.h>
-#include "bank_text_debug.h"
 
 #include <string.h>
 #include <Arduino.h>
 
 #include <WiFiUdp.h>
-#define IP_DEST_UDP "192.168.79.10"
-#define PORT_DEST_UDP 1234
 
 #define Send_String_UARTX(a,b) Serial.print(a)
 
@@ -50,11 +47,27 @@
 //* Variables privees *
 //*********************
 
-/// @brief Buffer d'envoi de la trace
-uint8_t Buffer_TX_Trace[30];
+const uint8_t Txt_None[] = "NONE";
+const uint8_t Txt_Error[] = "ERROR";
+const uint8_t Txt_Info[] = "INFO";
+const uint8_t Txt_Tst_Secu_Results[] = "TSR";
+const uint8_t Txt_Debug1[] = "DBG1";
+const uint8_t Txt_Debug2[] = "DBG2";
+const uint8_t Txt_Debug3[] = "DBG3";
+const uint8_t Txt_Debug4[] = "DBG4";
+const uint8_t Txt_DebugSpecif[] = "DBGX";
+const uint8_t Txt_All[] = "ALL";
+
+Txt_Type_Trace_t Table_Type_Trace[10] = { { NONE, Txt_None }, { ERROR, Txt_Error },
+    { INFO, Txt_Info }, { TEST_SECU_RESULTS, Txt_Tst_Secu_Results }, { DBG1, Txt_Debug1 }, { DBG2,
+        Txt_Debug2 }, { DBG3, Txt_Debug3 }, { DBG4, Txt_Debug4 }, { DBGX, Txt_DebugSpecif }, { ALL,
+        Txt_All } };
+
+std::string g_t_IPServeur("192.168.79.10");
+uint16_t g_u16_PortDestUdp = 1234;
 
 /// @brief Niveau maximum de trace a remonter
-type_trace_t Max_Debug_Level = INFO;
+e_type_trace_t g_e_MaxDebugLevel = INFO;
 
 QueueHandle_t g_pt_queueTraces;
 
@@ -83,7 +96,7 @@ void Init_Trace_Debug(void)
 
 }
 
-const char* Get_Text_Type_Trace(type_trace_t Type_Trace)
+const char* Get_Text_Type_Trace(e_type_trace_t Type_Trace)
 {
   Txt_Type_Trace_t *p_Table_Type_Trace = &Table_Type_Trace[0];
 
@@ -100,135 +113,17 @@ const char* Get_Text_Type_Trace(type_trace_t Type_Trace)
   return NULL;
 }
 
-uint8_t Send_Trace(type_trace_t Type_Trace, const char Txt_Donnees[], bool Horodatage,
-    const char *i_ps8_nomFichier, const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne)
+void Set_Max_Debug_Level(e_type_trace_t Level)
 {
-  const char *Txt_Trace = NULL;
-  char *P_Buffer = (char*) Buffer_TX_Trace;
-  uint8_t Len_Temp;
-  uint8_t Returned_Value = 0;
-  uint32_t Temps;
-
-#if defined(ACTIVER_TRACES_UDP)
-  WiFiUDP udp;
-#endif
-
-  // Test pour savoir si la trace a un niveau "remontable" ou non
-  if (Test_Trace_Level(Type_Trace) != 0)
-    return 2;
-
-  // Donnees a renvoyer non definie, on sort !
-  if (Txt_Donnees == NULL)
-    return 1;
-
-  if (Horodatage == true)
-    Temps = Get_Time();
-
-  Txt_Trace = Get_Text_Type_Trace(Type_Trace);
-
-  if (Txt_Trace == NULL)
-    return 1;
-
-  if (Horodatage == true)
-  {
-    uint32_t Time_int;
-    uint8_t Time_frac;
-
-    Time_int = Temps / 10;
-    Time_frac = Temps - (10 * Time_int);
-
-    Len_Temp = Conv_NumToStr(Time_int, P_Buffer);
-    P_Buffer += Len_Temp;
-    *P_Buffer = '.';
-    P_Buffer++;
-    Len_Temp = Conv_NumToStr(Time_frac, P_Buffer);
-    P_Buffer += Len_Temp;
-    *P_Buffer = 's';
-    P_Buffer++;
-    *P_Buffer = ':';
-    P_Buffer++;
-    *P_Buffer = ' ';
-    P_Buffer++;
-  }
-
-  Len_Temp = strlen(Txt_Trace);
-  strcpy(P_Buffer, Txt_Trace);
-  P_Buffer += Len_Temp;
-
-  *P_Buffer = ' ';
-  P_Buffer++;
-  *P_Buffer = '-';
-  P_Buffer++;
-  *P_Buffer = ' ';
-  P_Buffer++;
-
-  *P_Buffer = 0;
-
-#if defined(ACTIVER_TRACES_UDP)
-  udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
-  udp.write(Buffer_TX_Trace, strlen((const char*) Buffer_TX_Trace));
-  udp.write((const uint8_t*) Txt_Donnees, strlen((const char*) Txt_Donnees));
-//  udp.endPacket();
-#endif
-
-  Send_String_UARTX((char* )Buffer_TX_Trace, Numero_UART);
-  Send_String_UARTX((char* )Txt_Donnees, Numero_UART);
-
-  if (i_u16_numeroLigne != 0)
-  {
-    Send_String_UARTX("    @@ (", Numero_UART);
-
-    Send_String_UARTX((char* )i_ps8_nomFonction, Numero_UART);
-    Send_String_UARTX(" -> ", Numero_UART);
-    Send_String_UARTX((char* )i_ps8_nomFichier, Numero_UART);
-    Send_String_UARTX("(l.", Numero_UART);
-
-    {
-
-#if defined(ACTIVER_TRACES_UDP)
-      udp.write((const uint8_t*) "    @@ (", strlen("    @@ ("));
-      udp.write((const uint8_t*) i_ps8_nomFonction, strlen(i_ps8_nomFonction));
-      udp.write((const uint8_t*) " -> ", strlen(" -> "));
-      udp.write((const uint8_t*) i_ps8_nomFichier, strlen(i_ps8_nomFichier));
-      udp.write((const uint8_t*) "(l.", strlen("(l."));
-#endif
-
-      char *TempBuffer = new char[20];
-      P_Buffer = TempBuffer;
-      Len_Temp = Conv_NumToStr(i_u16_numeroLigne, P_Buffer);
-      P_Buffer += Len_Temp;
-      *P_Buffer = 0;
-      Send_String_UARTX((char* )TempBuffer, Numero_UART);
-
-      Send_String_UARTX("))", Numero_UART);
-
-#if defined(ACTIVER_TRACES_UDP)
-      udp.write((const uint8_t*) TempBuffer, strlen(TempBuffer));
-      udp.write((const uint8_t*) "))", strlen("))"));
-#endif
-      delete[] TempBuffer;
-    }
-  }
-  Send_String_UARTX("\n", Numero_UART);
-
-#if defined(ACTIVER_TRACES_UDP)
-  udp.endPacket();
-#endif
-
-  return Returned_Value;
+  g_e_MaxDebugLevel = Level;
 }
 
-void Set_Max_Debug_Level(type_trace_t Level)
+e_type_trace_t Get_Max_Debug_Level(void)
 {
-  Max_Debug_Level = Level;
+  return g_e_MaxDebugLevel;
 }
 
-type_trace_t Get_Max_Debug_Level(void)
-{
-  return Max_Debug_Level;
-}
-
-uint8_t Send_Trace_Buffer(type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
+uint8_t Send_Trace_Buffer(e_type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
     uint8_t Size, bool Horodatage)
 {
   char Buffer_Temp[128];
@@ -300,20 +195,20 @@ uint8_t Send_Trace_Buffer(type_trace_t Type_Trace, const char Txt_Donnees[], uin
 
   *P_Buffer_Temp = 0;
 
-  return Send_Trace(Type_Trace, Buffer_Temp, Horodatage);
+  return 0;  //Send_Trace(Type_Trace, Buffer_Temp, Horodatage);
 }
 
-uint8_t Test_Trace_Level(type_trace_t Level)
+uint8_t Test_Trace_Level(e_type_trace_t Level)
 {
   // Pas de trace voulue, on sort !
-  if (Max_Debug_Level == NONE)
+  if (g_e_MaxDebugLevel == NONE)
     return 1;
 
   if (Level == NONE)
     return 1;
 
   // Niveau de trace superieur au niveau max defini, on sort !
-  if (Level > Max_Debug_Level)
+  if (Level > g_e_MaxDebugLevel)
   {
     // Sauf s'il s'agit du niveau de "debug specifique" permettant d'extraire
     // une trace particuliere
@@ -324,187 +219,7 @@ uint8_t Test_Trace_Level(type_trace_t Level)
   return 0;
 }
 
-uint8_t Conv_NumToStr(uint32_t Num, char *String)
-{
-  uint8_t Nbre = 0;
-  int32_t Temp;
-
-  if (Num > 999999999)
-    Num = 999999999;
-
-  Temp = (signed long) Num;
-
-  if (Temp > 99999999)
-  {
-    if (Nbre == 0)
-      Nbre = 9 + 1 + 1;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 100000000;
-      (*String)++;
-    }
-
-    Temp += 100000000;
-    (*String)--;
-
-    String++;
-  }
-
-  if ((Temp > 9999999) || (Nbre > 8))
-  {
-    if (Nbre == 0)
-      Nbre = 8 + 1 + 1;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 10000000;
-      (*String)++;
-    }
-
-    Temp += 10000000;
-    (*String)--;
-
-    String++;
-
-  }
-
-  if ((Temp > 999999) || (Nbre > 7))
-  {
-    if (Nbre == 0)
-      Nbre = 7 + 1 + 1;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 1000000;
-      (*String)++;
-    }
-
-    Temp += 1000000;
-    (*String)--;
-
-    String++;
-    *String = '\'';
-    String++;
-  }
-
-  if ((Temp > 99999) || (Nbre > 6))
-  {
-    if (Nbre == 0)
-      Nbre = 6 + 1;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 100000;
-      (*String)++;
-    }
-
-    Temp += 100000;
-    (*String)--;
-
-    String++;
-  }
-
-  if ((Temp > 9999) || (Nbre > 5))
-  {
-    if (Nbre == 0)
-      Nbre = 5 + 1;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 10000;
-      (*String)++;
-    }
-
-    Temp += 10000;
-    (*String)--;
-
-    String++;
-  }
-
-  if ((Temp > 999) || (Nbre > 4))
-  {
-    if (Nbre == 0)
-      Nbre = 4 + 1;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 1000;
-      (*String)++;
-    }
-
-    Temp += 1000;
-    (*String)--;
-
-    String++;
-
-    *String = '\'';
-    String++;
-  }
-
-  if ((Temp > 99) || (Nbre > 3))
-  {
-    if (Nbre == 0)
-      Nbre = 3;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 100;
-      (*String)++;
-    }
-
-    Temp += 100;
-    (*String)--;
-
-    String++;
-  }
-
-  if ((Temp > 9) || (Nbre > 2))
-  {
-    if (Nbre == 0)
-      Nbre = 2;
-
-    *String = 0x30;
-
-    while (Temp >= 0)
-    {
-      Temp -= 10;
-      (*String)++;
-    }
-
-    Temp += 10;
-    (*String)--;
-
-    String++;
-  }
-
-  // reste les unites !
-  if (Nbre == 0)
-    Nbre = 1;
-
-  *String = 0x30 + Temp;
-
-  String++;
-  *String = 0;
-
-  return Nbre;
-}
-
-uint8_t Send_VTrace(type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
+uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps8_nomFichier,
     const char *i_ps8_nomFonction, uint16_t i_u16_numeroLigne, const char *Txt_Donnees, ...)
 {
   char ts8_BufferTx[200];
@@ -562,11 +277,10 @@ void ThreadTxTrace(void *Parametre)
 
       if (g_b_TraceUDP == true)
       {
-//#if defined(ACTIVER_TRACES_UDP)
         WiFiUDP l_t_udp;
         uint8_t u8_retourFct;
 
-        l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+        l_t_udp.beginPacket(g_t_IPServeur.c_str(), g_u16_PortDestUdp);
         l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
         u8_retourFct = l_t_udp.endPacket();
 
@@ -576,21 +290,17 @@ void ThreadTxTrace(void *Parametre)
           vTaskDelay(10);
           const unsigned char tu8_buff[] = "2nd...";
 
-          l_t_udp.beginPacket(IP_DEST_UDP, PORT_DEST_UDP);
+          l_t_udp.beginPacket(g_t_IPServeur.c_str(), g_u16_PortDestUdp);
           l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
           l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
           l_t_udp.endPacket();
         }
       }
-//#endif
 
       if (g_b_TraceSerie == true)
       {
-//#if !defined(DESACTIVER_TRACE_SERIE)
         Serial.println(l_t_localMsg.c_str());
-//#endif
       }
-
     }
   }
 }
@@ -609,7 +319,14 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
   }
   else if (l_t_Arg1 == "PortServeur")
   {
-    SEND_VTRACE(INFO, "Port Serveur: %s", l_t_Arg2.c_str());
+    uint16_t l_u16_numPort = std::stoi(l_t_Arg2);
+
+    SEND_VTRACE(INFO, "Port Serveur: %d", l_u16_numPort);
+
+    if (l_u16_numPort != 0)
+    {
+      g_u16_PortDestUdp = l_u16_numPort;
+    }
   }
   else if (l_t_Arg1 == "UDP")
   {
@@ -639,7 +356,16 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
   }
   else if (l_t_Arg1 == "NiveauTrace")
   {
+    uint8_t l_u8_niveauTrace = std::stoi(l_t_Arg2);
 
+    SEND_VTRACE(INFO, "Traces Niveau: %d", l_u8_niveauTrace);
+
+    Set_Max_Debug_Level((e_type_trace_t) l_u8_niveauTrace);
+
+  }
+  else
+  {
+    SEND_VTRACE(ERROR, "Commande inconnue");
   }
 
   return l_u8_codeRetour;
