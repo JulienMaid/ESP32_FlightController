@@ -22,10 +22,6 @@
 
 #define TRACE_DEBUG_C
 
-//#define ACTIVER_TRACES_UDP
-
-//#define DESACTIVER_TRACE_SERIE
-
 //************************************
 //* Includes lies a l'implementation *
 //************************************
@@ -63,7 +59,7 @@ Txt_Type_Trace_t Table_Type_Trace[10] = { { NONE, Txt_None }, { ERROR, Txt_Error
         Txt_Debug2 }, { DBG3, Txt_Debug3 }, { DBG4, Txt_Debug4 }, { DBGX, Txt_DebugSpecif }, { ALL,
         Txt_All } };
 
-std::string g_t_IPServeur("192.168.79.10");
+std::string g_t_adresseIpServeur("192.168.79.10");
 uint16_t g_u16_PortDestUdp = 1234;
 
 /// @brief Niveau maximum de trace a remonter
@@ -73,9 +69,6 @@ QueueHandle_t g_pt_queueTraces;
 
 bool g_b_TraceUDP = false;
 bool g_b_TraceSerie = true;
-
-std::string g_t_adresseIpServeur;
-uint16_t g_u16_portTracesUDP;
 
 //********************************
 //* Implementation des fonctions *
@@ -280,7 +273,7 @@ void ThreadTxTrace(void *Parametre)
         WiFiUDP l_t_udp;
         uint8_t u8_retourFct;
 
-        l_t_udp.beginPacket(g_t_IPServeur.c_str(), g_u16_PortDestUdp);
+        l_t_udp.beginPacket(g_t_adresseIpServeur.c_str(), g_u16_PortDestUdp);
         l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
         u8_retourFct = l_t_udp.endPacket();
 
@@ -290,7 +283,7 @@ void ThreadTxTrace(void *Parametre)
           vTaskDelay(10);
           const unsigned char tu8_buff[] = "2nd...";
 
-          l_t_udp.beginPacket(g_t_IPServeur.c_str(), g_u16_PortDestUdp);
+          l_t_udp.beginPacket(g_t_adresseIpServeur.c_str(), g_u16_PortDestUdp);
           l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
           l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
           l_t_udp.endPacket();
@@ -307,7 +300,7 @@ void ThreadTxTrace(void *Parametre)
 
 uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
 {
-  uint8_t l_u8_codeRetour;
+  uint8_t l_u8_codeRetour = 0;
   std::string l_t_Arg1, l_t_Arg2;
 
   p_t_TrameADecoder >> l_t_Arg1 >> l_t_Arg2;
@@ -366,6 +359,7 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
   else
   {
     SEND_VTRACE(ERROR, "Commande inconnue");
+    l_u8_codeRetour = 1;
   }
 
   return l_u8_codeRetour;
