@@ -23,6 +23,8 @@ void setup()
 {
   bool l_b_WifiConnected = false;
 
+  WiFi.setHostname(g_t_MsgDemarrage.c_str());
+
   // initialisation du Timer matériel pour le module TimerSW
   g_t_blinker.attach(0.05, Inc_Timer);
 
