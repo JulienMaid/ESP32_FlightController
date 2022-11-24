@@ -21,15 +21,17 @@ void InitPortCmd(uint8_t i_u8_portVoie1, uint8_t i_u8_portVoie2, uint8_t i_u8_po
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie3] = i_u8_portVoie3;
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie4] = i_u8_portVoie4;
 
-  pinMode(PORT_VOIE1, INPUT_PULLDOWN);
-  pinMode(PORT_VOIE2, INPUT_PULLDOWN);
-  pinMode(PORT_VOIE3, INPUT_PULLDOWN);
-  pinMode(PORT_VOIE4, INPUT_PULLDOWN);
-  attachInterrupt(PORT_VOIE1, ISR_ImpulsionCmdVoie1, CHANGE);
-  attachInterrupt(PORT_VOIE2, ISR_ImpulsionCmdVoie2, CHANGE);
-  attachInterrupt(PORT_VOIE3, ISR_ImpulsionCmdVoie3, CHANGE);
-  attachInterrupt(PORT_VOIE4, ISR_ImpulsionCmdVoie4, CHANGE);
+  pinMode(i_u8_portVoie1, INPUT_PULLDOWN);
+  pinMode(i_u8_portVoie2, INPUT_PULLDOWN);
+  pinMode(i_u8_portVoie3, INPUT_PULLDOWN);
+  pinMode(i_u8_portVoie4, INPUT_PULLDOWN);
+  attachInterrupt(i_u8_portVoie1, ISR_ImpulsionCmdVoie1, CHANGE);
+  attachInterrupt(i_u8_portVoie2, ISR_ImpulsionCmdVoie2, CHANGE);
+  attachInterrupt(i_u8_portVoie3, ISR_ImpulsionCmdVoie3, CHANGE);
+  attachInterrupt(i_u8_portVoie4, ISR_ImpulsionCmdVoie4, CHANGE);
 
+  SEND_VTRACE(INFO, "Voie1: %d, Voie2: %d, Voie3:%d, Voie4: %d", i_u8_portVoie1, i_u8_portVoie2,
+      i_u8_portVoie3, i_u8_portVoie4);
 }
 
 void IRAM_ATTR ISR_ImpulsionCmdVoie1(void)

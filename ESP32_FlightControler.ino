@@ -55,11 +55,11 @@ void setup()
 //  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
 
 // Création du module de controle Moteurs
-  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
+//  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
+//      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
 
-  // Initialisation du décodage des signaux issues du recepteur Radio
-  InitPortCmd();
+// Initialisation du décodage des signaux issues du recepteur Radio
+  InitPortCmd(34, 35, 36, 39);
 
 }
 
@@ -113,11 +113,11 @@ void loop()
     SEND_VTRACE(INFO, "OverFlow micros()");
   }
 
-  if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 4000000)
+  if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 1000000)
   {
     u32_TempsUsPrecedent = u32_TempsUsCourant;
 
-    SEND_VTRACE(INFO, "TOP !");
+    SEND_VTRACE(INFO, "Top !");
 
   }
 
