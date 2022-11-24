@@ -20,7 +20,11 @@ public:
   ControleurMoteurs& operator=(const ControleurMoteurs &other) = delete;
   ControleurMoteurs(ControleurMoteurs &&other) = delete;
 
-  virtual void FixerNouvellesConsigne(uint16_t u16_ConsigneMoteurAvG,
+  virtual void FixerNouvellesConsignePourMille(uint16_t u16_ConsigneMoteurAvG,
+      uint16_t Consigneu16_MoteurAvD, uint16_t u16_ConsigneMoteurArG,
+      uint16_t u16_ConsigneMoteurArD) = 0;
+
+  virtual void FixerNouvellesConsigneImpulsion(uint16_t u16_ConsigneMoteurAvG,
       uint16_t Consigneu16_MoteurAvD, uint16_t u16_ConsigneMoteurArG,
       uint16_t u16_ConsigneMoteurArD) = 0;
 

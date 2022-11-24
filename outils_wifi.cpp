@@ -42,31 +42,6 @@ bool connecterWifi(uint8_t i_u8_NumeroPortClignote)
   delay(100);
 #endif
 
-//  for (uint8_t u8_index = 0; u8_index < u8_tailleConfigReseau; u8_index++)
-//  {
-//    TempoConnection.Start();
-//    WiFi.begin(ts_configReseau[u8_index].ts8_ssid, ts_configReseau[u8_index].ts8_password);
-//
-//    while ((WiFi.status() != WL_CONNECTED) && (TempoConnection.IsTop() == false))
-//    {
-//      delay(250);
-//      digitalWrite(i_u8_NumeroPortClignote, 1);
-//      delay(250);
-//      digitalWrite(i_u8_NumeroPortClignote, 0);
-//
-//      Serial.print(".");
-//    }
-//
-//    TempoConnection.Delete();
-//
-//    if (WiFi.status() == WL_CONNECTED)
-//    {
-//
-//      return true;
-//    }
-//
-//  }
-
   u16_nbreReseauWifi = WiFi.scanNetworks();
   if (u16_nbreReseauWifi == 0)
   {

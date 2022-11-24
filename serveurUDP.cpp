@@ -6,9 +6,10 @@
 AsyncUDP udp;
 //char tc_RxBuffer[255];
 //bool g_b_threadActif;
-QueueHandle_t g_pt_queue;
 
-uint8_t initServeurUDP(uint16_t i_u16_portEcoute)
+QueueHandle_t *g_ppt_queue;
+
+uint8_t initServeurUDP(uint16_t i_u16_portEcoute, QueueHandle_t *i_ppt_queue)
 {
   uint8_t u8_CR = -1;
 
@@ -18,7 +19,13 @@ uint8_t initServeurUDP(uint16_t i_u16_portEcoute)
         i_u16_portEcoute);
     udp.onPacket(onPacketCallBack);
 
-    g_pt_queue = xQueueCreate(10, sizeof(std::string*));
+    if (*i_ppt_queue == nullptr)
+    {
+      *i_ppt_queue = xQueueCreate(10, sizeof(std::string*));
+      SEND_VTRACE(DBG1, "Init Queue");
+    }
+
+    g_ppt_queue = i_ppt_queue;
 
     u8_CR = 0;
   }
@@ -34,7 +41,7 @@ void onPacketCallBack(AsyncUDPPacket packet)
 
   SEND_VTRACE(DBG2, "Core %d; RX: %s", xPortGetCoreID(), l_pt_stringRxUdp->c_str());
 
-  xQueueSend(g_pt_queue, &l_pt_stringRxUdp, 0);
+  xQueueSend(*g_ppt_queue, &l_pt_stringRxUdp, 0);
 
   packet.flush();
 }

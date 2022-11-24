@@ -24,10 +24,10 @@
 #define DEF_DEBUG_TYPE_H_
 
 // Definition des niveaux possibles de traces
-typedef enum def_type_trace
+typedef enum def_type_trace : uint8_t
 {
-  NONE = 0, ERROR, WARNING, INFO, TEST_SECU_RESULTS, DBG1, DBG2, DBG3, DBG4, DBGX = 0xfe, ALL = 0xff
-} type_trace_t;
+  NONE = 0, ERROR, INFO, TEST_SECU_RESULTS, DBG1, DBG2, DBG3, DBG4, DBGX = 0xfe, ALL = 0xff
+} e_type_trace_t;
 
 // Declaration de #define pour la retro-compatibilite avec les versions precedentes
 #define DEBUG1			DBG1
