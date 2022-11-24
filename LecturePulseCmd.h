@@ -16,8 +16,8 @@
 #define PORT_VOIE3  0
 #define PORT_VOIE4  0
 
-#define VALEUR_IMPULSION_MINI (uint32_t)1000
-#define VALEUR_IMPULSION_MAXI (uint32_t)2000
+static constexpr uint32_t g_u32_Valeur_Impulsion_Mini = 1000;
+static constexpr uint32_t g_u32_Valeur_Impulsion_Maxi = 2000;
 
 enum e_NumeroVoie_t : uint8_t
 {
