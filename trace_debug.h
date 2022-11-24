@@ -46,7 +46,7 @@ typedef struct
 } Txt_Type_Trace_t;
 
 /// @brief Definition des textes des types de trace possibles
-extern Txt_Type_Trace_t Table_Type_Trace[10];
+extern Txt_Type_Trace_t Table_Type_Trace[11];
 
 //*************************************
 //* Prototype des fonctions publiques *

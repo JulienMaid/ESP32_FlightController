@@ -54,7 +54,7 @@ void setup()
 
 //  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
 
-  // Création du module de controle Moteurs
+// Création du module de controle Moteurs
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
       e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
 
@@ -67,6 +67,8 @@ void setup()
 void loop()
 {
   std::string *l_pt_stringRxUdp = nullptr;
+  uint32_t u32_TempsUsCourant;
+  static uint32_t u32_TempsUsPrecedent;
 
   if (xQueueReceive(g_pt_queue, &l_pt_stringRxUdp, 0) == pdTRUE)
   {
@@ -98,6 +100,7 @@ void loop()
 
         SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
 
+      }
     }
   }
 

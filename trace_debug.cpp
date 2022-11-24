@@ -49,6 +49,7 @@
 
 const uint8_t Txt_None[] = "NONE";
 const uint8_t Txt_Error[] = "ERROR";
+const uint8_t Txt_Warning[] = "WARNING";
 const uint8_t Txt_Info[] = "INFO";
 const uint8_t Txt_Tst_Secu_Results[] = "TSR";
 const uint8_t Txt_Debug1[] = "DBG1";
@@ -58,10 +59,10 @@ const uint8_t Txt_Debug4[] = "DBG4";
 const uint8_t Txt_DebugSpecif[] = "DBGX";
 const uint8_t Txt_All[] = "ALL";
 
-Txt_Type_Trace_t Table_Type_Trace[10] = { { NONE, Txt_None }, { ERROR, Txt_Error },
-    { INFO, Txt_Info }, { TEST_SECU_RESULTS, Txt_Tst_Secu_Results }, { DBG1, Txt_Debug1 }, { DBG2,
-        Txt_Debug2 }, { DBG3, Txt_Debug3 }, { DBG4, Txt_Debug4 }, { DBGX, Txt_DebugSpecif }, { ALL,
-        Txt_All } };
+Txt_Type_Trace_t Table_Type_Trace[11] = { { NONE, Txt_None }, { ERROR, Txt_Error }, { WARNING,
+    Txt_Warning }, { INFO, Txt_Info }, { TEST_SECU_RESULTS, Txt_Tst_Secu_Results }, { DBG1,
+    Txt_Debug1 }, { DBG2, Txt_Debug2 }, { DBG3, Txt_Debug3 }, { DBG4, Txt_Debug4 }, { DBGX,
+    Txt_DebugSpecif }, { ALL, Txt_All } };
 
 std::string g_t_IPServeur("192.168.79.10");
 uint16_t g_u16_PortDestUdp = 1234;
