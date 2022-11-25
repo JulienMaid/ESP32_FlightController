@@ -15,7 +15,8 @@ uint8_t initServeurUDP(uint16_t i_u16_portEcoute, QueueHandle_t *i_ppt_queue)
 
   if (udp.listen(i_u16_portEcoute))
   {
-    SEND_VTRACE(INFO, "Ecoute UDP sur IP: %s", WiFi.localIP().toString().c_str());
+    SEND_VTRACE(INFO, "Ecoute UDP sur IP: %s  port %u", WiFi.localIP().toString().c_str(),
+        i_u16_portEcoute);
     udp.onPacket(onPacketCallBack);
 
     if (*i_ppt_queue == nullptr)

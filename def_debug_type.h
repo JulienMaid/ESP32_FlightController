@@ -26,7 +26,7 @@
 // Definition des niveaux possibles de traces
 typedef enum def_type_trace : uint8_t
 {
-  NONE = 0, ERROR, INFO, TEST_SECU_RESULTS, DBG1, DBG2, DBG3, DBG4, DBGX = 0xfe, ALL = 0xff
+  NONE = 0, ERROR, WARNING, INFO, TEST_SECU_RESULTS, DBG1, DBG2, DBG3, DBG4, DBGX = 0xfe, ALL = 0xff
 } e_type_trace_t;
 
 // Declaration de #define pour la retro-compatibilite avec les versions precedentes

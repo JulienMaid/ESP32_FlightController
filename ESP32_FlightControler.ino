@@ -10,6 +10,7 @@
 #include "serveurUDP.h"
 #include "serveurSerial.h"
 #include "controleurMoteursFactory.h"
+#include "LecturePulseCmd.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -28,15 +29,17 @@ void setup()
   // initialisation du Timer matériel pour le module TimerSW
   g_t_blinker.attach(0.05, Inc_Timer);
 
-  Init_Trace_Debug();
-  Set_Max_Debug_Level(DBG1);
-
   l_b_WifiConnected = connecterWifi(0);
+
+  // Initialisation du système de Traces
+  Init_Trace_Debug(true, true, std::string(WiFi.broadcastIP().toString().c_str()), 1234);
+  Set_Max_Debug_Level(DBG1);
 
   SEND_VTRACE(INFO, g_t_MsgDemarrage.c_str());
 
   SEND_VTRACE(INFO, "Connection Wifi: %d", l_b_WifiConnected);
 
+  // Demarrage du service de mise à jour OTA
   if (l_b_WifiConnected == true)
   {
     DemarrerServeurOTA(g_t_MsgDemarrage);
@@ -50,10 +53,13 @@ void setup()
   initServeurSerial(&g_pt_queue);
 
 //  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
+
+// Création du module de controle Moteurs
+//  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
 //      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
 
-  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-      e_typeMoteur_t::MOTEUR_BRUSHED, 2, 4, 16, 17);
+// Initialisation du décodage des signaux issues du recepteur Radio
+//  InitPortCmd(34, 35, 36, 39);
 
 }
 
@@ -61,6 +67,8 @@ void setup()
 void loop()
 {
   std::string *l_pt_stringRxUdp = nullptr;
+  uint32_t u32_TempsUsCourant;
+  static uint32_t u32_TempsUsPrecedent;
 
   if (xQueueReceive(g_pt_queue, &l_pt_stringRxUdp, 0) == pdTRUE)
   {
@@ -92,12 +100,25 @@ void loop()
 
         SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
 
-        g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(20, 40, 60, 80);
       }
     }
   }
 
-  delay(100);
+  u32_TempsUsCourant = micros();
 
-//  SEND_VTRACE(INFO, "Core %d, Test2", xPortGetCoreID());
+  // Gestion de l'overflow de micros()
+  if (u32_TempsUsCourant < u32_TempsUsPrecedent)
+  {
+    u32_TempsUsPrecedent = u32_TempsUsCourant;
+    SEND_VTRACE(INFO, "OverFlow micros()");
+  }
+
+  if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 1000000)
+  {
+    u32_TempsUsPrecedent = u32_TempsUsCourant;
+
+    SEND_VTRACE(INFO, "Top !");
+
+  }
+
 }
