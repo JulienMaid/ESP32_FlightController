@@ -64,7 +64,7 @@ Txt_Type_Trace_t Table_Type_Trace[11] = { { NONE, Txt_None }, { ERROR, Txt_Error
     Txt_Debug1 }, { DBG2, Txt_Debug2 }, { DBG3, Txt_Debug3 }, { DBG4, Txt_Debug4 }, { DBGX,
     Txt_DebugSpecif }, { ALL, Txt_All } };
 
-std::string g_t_IPServeur("192.168.79.10");
+std::string g_t_IPDestTracesUDP("192.168.79.255");
 uint16_t g_u16_PortDestUdp = 1234;
 
 /// @brief Niveau maximum de trace a remonter
@@ -72,17 +72,15 @@ e_type_trace_t g_e_MaxDebugLevel = INFO;
 
 QueueHandle_t g_pt_queueTraces;
 
-bool g_b_TraceUDP = false;
-bool g_b_TraceSerie = true;
-
-std::string g_t_adresseIpServeur;
-uint16_t g_u16_portTracesUDP;
+bool g_b_TracesUDP = false;
+bool g_b_TracesSerie = true;
 
 //********************************
 //* Implementation des fonctions *
 //********************************
 
-void Init_Trace_Debug(void)
+void Init_Trace_Debug(bool i_b_TracesSerie, bool i_b_TracesUDP, std::string i_t_IPTracesUDP,
+    uint16_t i_u16_PortDestTracesUDP)
 {
   BaseType_t xReturned;
   TaskHandle_t xHandle = NULL;
@@ -95,6 +93,15 @@ void Init_Trace_Debug(void)
 
   xTaskCreatePinnedToCore(ThreadTxTrace, "ThreadTxTrace", 4000, NULL, 2, &xHandle, 0);
 
+  g_b_TracesSerie = i_b_TracesSerie;
+  g_b_TracesUDP = i_b_TracesUDP;
+
+  if (i_t_IPTracesUDP != "")
+  {
+    g_b_TracesUDP = i_b_TracesUDP;
+    g_t_IPDestTracesUDP = i_t_IPTracesUDP;
+    g_u16_PortDestUdp = i_u16_PortDestTracesUDP;
+  }
 }
 
 const char* Get_Text_Type_Trace(e_type_trace_t Type_Trace)
@@ -276,12 +283,12 @@ void ThreadTxTrace(void *Parametre)
       std::string l_t_localMsg = *l_pt_stringRxUdp;
       delete l_pt_stringRxUdp;
 
-      if (g_b_TraceUDP == true)
+      if (g_b_TracesUDP == true)
       {
         WiFiUDP l_t_udp;
         uint8_t u8_retourFct;
 
-        l_t_udp.beginPacket(g_t_IPServeur.c_str(), g_u16_PortDestUdp);
+        l_t_udp.beginPacket(g_t_IPDestTracesUDP.c_str(), g_u16_PortDestUdp);
         l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
         u8_retourFct = l_t_udp.endPacket();
 
@@ -291,14 +298,14 @@ void ThreadTxTrace(void *Parametre)
           vTaskDelay(10);
           const unsigned char tu8_buff[] = "2nd...";
 
-          l_t_udp.beginPacket(g_t_IPServeur.c_str(), g_u16_PortDestUdp);
+          l_t_udp.beginPacket(g_t_IPDestTracesUDP.c_str(), g_u16_PortDestUdp);
           l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
           l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
           l_t_udp.endPacket();
         }
       }
 
-      if (g_b_TraceSerie == true)
+      if (g_b_TracesSerie == true)
       {
         Serial.println(l_t_localMsg.c_str());
       }
@@ -315,8 +322,8 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
 
   if (l_t_Arg1 == "IPServeur")
   {
-    g_t_adresseIpServeur = l_t_Arg2;
-    SEND_VTRACE(INFO, "IPServeur: %s", g_t_adresseIpServeur.c_str());
+    g_t_IPDestTracesUDP = l_t_Arg2;
+    SEND_VTRACE(INFO, "IPServeur: %s", g_t_IPDestTracesUDP.c_str());
   }
   else if (l_t_Arg1 == "PortServeur")
   {
@@ -334,12 +341,12 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
     if (l_t_Arg2 == "ON")
     {
       SEND_VTRACE(INFO, "Trace UDP ON");
-      g_b_TraceUDP = true;
+      g_b_TracesUDP = true;
     }
     else
     {
       SEND_VTRACE(INFO, "Trace UDP OFF");
-      g_b_TraceUDP = false;
+      g_b_TracesUDP = false;
     }
   }
   else if (l_t_Arg1 == "Serie")
@@ -347,12 +354,12 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
     if (l_t_Arg2 == "ON")
     {
       SEND_VTRACE(INFO, "Trace Serie ON");
-      g_b_TraceSerie = true;
+      g_b_TracesSerie = true;
     }
     else
     {
       SEND_VTRACE(INFO, "Trace Serie OFF");
-      g_b_TraceSerie = false;
+      g_b_TracesSerie = false;
     }
   }
   else if (l_t_Arg1 == "NiveauTrace")

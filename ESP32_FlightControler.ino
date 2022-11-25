@@ -29,11 +29,11 @@ void setup()
   // initialisation du Timer matériel pour le module TimerSW
   g_t_blinker.attach(0.05, Inc_Timer);
 
-  // Initialisation du système de Traces
-  Init_Trace_Debug();
-  Set_Max_Debug_Level(DBG1);
-
   l_b_WifiConnected = connecterWifi(0);
+
+  // Initialisation du système de Traces
+  Init_Trace_Debug(true, true, std::string(WiFi.broadcastIP().toString().c_str()), 1234);
+  Set_Max_Debug_Level(DBG1);
 
   SEND_VTRACE(INFO, g_t_MsgDemarrage.c_str());
 
@@ -59,7 +59,7 @@ void setup()
 //      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
 
 // Initialisation du décodage des signaux issues du recepteur Radio
-  InitPortCmd(34, 35, 36, 39);
+//  InitPortCmd(34, 35, 36, 39);
 
 }
 

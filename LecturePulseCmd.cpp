@@ -83,13 +83,15 @@ void GestionPortCmd(e_NumeroVoie_t i_e_NumeroVoie)
       // Bornage de la valeur lue
       if (u32_ImpulsionVoie < g_u32_Valeur_Impulsion_Mini)
       {
-        SEND_VTRACE(WARNING, "Warning: u32_ImpulsionVoie < %d", g_u32_Valeur_Impulsion_Mini);
+        SEND_VTRACE(WARNING, "Warning: u32_ImpulsionVoie < %d @ Voie %d",
+            g_u32_Valeur_Impulsion_Mini, i_e_NumeroVoie + 1);
         u32_ImpulsionVoie = g_u32_Valeur_Impulsion_Mini;
       }
 
       if (u32_ImpulsionVoie > g_u32_Valeur_Impulsion_Maxi)
       {
-        SEND_VTRACE(WARNING, "Warning: u32_ImpulsionVoie > %d", g_u32_Valeur_Impulsion_Maxi);
+        SEND_VTRACE(WARNING, "Warning: u32_ImpulsionVoie > %d @ Voie %d",
+            g_u32_Valeur_Impulsion_Maxi, i_e_NumeroVoie + 1);
         u32_ImpulsionVoie = g_u32_Valeur_Impulsion_Maxi;
       }
 
