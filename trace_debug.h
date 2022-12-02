@@ -129,6 +129,6 @@ uint8_t Conv_NumToStr(uint32_t Num, char *String);
 
 void ThreadTxTrace(void *Parametre);
 
-uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder);
+uint8_t DecodeOrdreConfigOrdre(std::stringstream &i_t_TrameADecoder, std::string &o_t_reponse);
 
 #endif /* TRACE_DEBUG_H */

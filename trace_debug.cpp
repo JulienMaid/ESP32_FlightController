@@ -22,10 +22,6 @@
 
 #define TRACE_DEBUG_C
 
-//#define ACTIVER_TRACES_UDP
-
-//#define DESACTIVER_TRACE_SERIE
-
 //************************************
 //* Includes lies a l'implementation *
 //************************************
@@ -70,7 +66,9 @@ uint16_t g_u16_PortDestUdp = 1234;
 /// @brief Niveau maximum de trace a remonter
 e_type_trace_t g_e_MaxDebugLevel = INFO;
 
+#if defined(ESP32)
 QueueHandle_t g_pt_queueTraces;
+#endif
 
 bool g_b_TracesUDP = false;
 bool g_b_TracesSerie = true;
@@ -82,13 +80,16 @@ bool g_b_TracesSerie = true;
 void Init_Trace_Debug(bool i_b_TracesSerie, bool i_b_TracesUDP, std::string i_t_IPTracesUDP,
     uint16_t i_u16_PortDestTracesUDP)
 {
+#if defined(ESP32)
   BaseType_t xReturned;
   TaskHandle_t xHandle = NULL;
+#endif
 
   Init_RTC_Soft();
 
   Serial.begin(115200);
 
+#if defined(ESP32)
   g_pt_queueTraces = xQueueCreate(10, sizeof(std::string*));
 
   xTaskCreatePinnedToCore(ThreadTxTrace, "ThreadTxTrace", 4000, NULL, 2, &xHandle, 0);
@@ -102,6 +103,7 @@ void Init_Trace_Debug(bool i_b_TracesSerie, bool i_b_TracesUDP, std::string i_t_
     g_t_IPDestTracesUDP = i_t_IPTracesUDP;
     g_u16_PortDestUdp = i_u16_PortDestTracesUDP;
   }
+#endif
 }
 
 const char* Get_Text_Type_Trace(e_type_trace_t Type_Trace)
@@ -134,6 +136,7 @@ e_type_trace_t Get_Max_Debug_Level(void)
 uint8_t Send_Trace_Buffer(e_type_trace_t Type_Trace, const char Txt_Donnees[], uint8_t *Buffer,
     uint8_t Size, bool Horodatage)
 {
+  (void) Horodatage;
   char Buffer_Temp[128];
   char *P_Buffer_Temp;
   uint8_t lenText_Donnnes;
@@ -236,7 +239,6 @@ uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps
   uint32_t u32_Temps;
   uint32_t u32_TimeInt;
   uint8_t u8_TimeFrac;
-  std::string *l_pt_StringTxt;
 
   // Test pour savoir si la trace a un niveau "remontable" ou non
   if (Test_Trace_Level(Type_Trace) != 0)
@@ -254,11 +256,20 @@ uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps
   vsprintf(ts8_BufferTx, Txt_Donnees, argp);
   va_end(argp);
 
-  sprintf(ts8_BufferTxString, "%u.%us: %s - %s    @@ (%s -> %s(l.%u))", u32_TimeInt, u8_TimeFrac,
-      Get_Text_Type_Trace(Type_Trace), ts8_BufferTx, i_ps8_nomFonction, i_ps8_nomFichier,
-      i_u16_numeroLigne);
+  if (Horodatage == true)
+  {
+    sprintf(ts8_BufferTxString, "%u.%us: %s - %s    @@ (%s -> %s(l.%u))", u32_TimeInt, u8_TimeFrac,
+        Get_Text_Type_Trace(Type_Trace), ts8_BufferTx, i_ps8_nomFonction, i_ps8_nomFichier,
+        i_u16_numeroLigne);
+  }
+  else
+  {
+    sprintf(ts8_BufferTxString, "%s - %s    @@ (%s -> %s(l.%u))", Get_Text_Type_Trace(Type_Trace),
+        ts8_BufferTx, i_ps8_nomFonction, i_ps8_nomFichier, i_u16_numeroLigne);
+  }
 
-  l_pt_StringTxt = new std::string(ts8_BufferTxString);
+#if defined(ESP32)
+  std::string * l_pt_StringTxt = new std::string(ts8_BufferTxString);
 
   if (xQueueSend(g_pt_queueTraces, &l_pt_StringTxt, 0) == pdTRUE)
   {
@@ -266,8 +277,41 @@ uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps
   }
 
   return 1;
+
+#else
+
+  if (g_b_TraceUDP == true)
+  {
+    WiFiUDP l_t_udp;
+    uint8_t u8_retourFct;
+    std::string l_t_localMsg;
+
+    l_t_udp.beginPacket(g_t_adresseIpServeur.c_str(), g_u16_PortDestUdp);
+    l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+    u8_retourFct = l_t_udp.endPacket();
+
+    if (u8_retourFct != 1)
+    {
+      // Si l'envoie ne s'estpas bien passé, on attend quelques ticks et on retente une 2nde fois
+      delay(10);
+      const unsigned char tu8_buff[] = "2nd...";
+
+      l_t_udp.beginPacket(g_t_adresseIpServeur.c_str(), g_u16_PortDestUdp);
+      l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
+      l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
+      l_t_udp.endPacket();
+    }
+
+  }
+  if (g_b_TraceSerie == true)
+  {
+    Serial.println(ts8_BufferTxString);
+  }
+  return 0;
+#endif
 }
 
+#if defined(ESP32)
 void ThreadTxTrace(void *Parametre)
 {
   std::string *l_pt_stringRxUdp = NULL;
@@ -312,13 +356,14 @@ void ThreadTxTrace(void *Parametre)
     }
   }
 }
+#endif
 
-uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
+uint8_t DecodeOrdreConfigOrdre(std::stringstream &i_t_TrameADecoder, std::string &o_t_reponse)
 {
-  uint8_t l_u8_codeRetour;
+  uint8_t l_u8_codeRetour = 0;
   std::string l_t_Arg1, l_t_Arg2;
 
-  p_t_TrameADecoder >> l_t_Arg1 >> l_t_Arg2;
+  i_t_TrameADecoder >> l_t_Arg1 >> l_t_Arg2;
 
   if (l_t_Arg1 == "IPServeur")
   {
@@ -371,9 +416,19 @@ uint8_t DecodeOrdreConfigOrdre(std::stringstream &p_t_TrameADecoder)
     Set_Max_Debug_Level((e_type_trace_t) l_u8_niveauTrace);
 
   }
+  else if (l_t_Arg1 == "Reset")
+  {
+    SEND_VTRACE(INFO, "Reset");
+    ESP.restart();
+  }
+  else if (l_t_Arg1 == "?")
+  {
+    o_t_reponse = "IPServeur - PortServeur - UDP - Serie - NiveauTrace - Reset - ?";
+  }
   else
   {
     SEND_VTRACE(ERROR, "Commande inconnue");
+    l_u8_codeRetour = 1;
   }
 
   return l_u8_codeRetour;
