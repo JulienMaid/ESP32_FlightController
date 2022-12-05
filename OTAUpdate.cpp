@@ -23,6 +23,8 @@ AsyncWebServer server(80);
 
 String Texte("ESP OTA");
 
+bool g_b_ServeurOTADemarre = false;
+
 void DemarrerServeurOTA(const String &pm_Texte)
 {
   if (pm_Texte != "")
@@ -37,9 +39,24 @@ void DemarrerServeurOTA(const String &pm_Texte)
 
   AsyncElegantOTA.begin(&server);    // Start ElegantOTA
   server.begin();
+
+  g_b_ServeurOTADemarre = true;
+}
+
+void RedemarrerServeurOTA(void)
+{
+  if (g_b_ServeurOTADemarre == false)
+  {
+    server.begin();
+    g_b_ServeurOTADemarre = true;
+  }
 }
 
 void StopperServeurOTA(void)
 {
-  server.end();
+  if (g_b_ServeurOTADemarre == true)
+  {
+    server.end();
+    g_b_ServeurOTADemarre = false;
+  }
 }
