@@ -13,11 +13,15 @@
 #include "LecturePulseCmd.h"
 #include "machineetat.h"
 #include "actionmachineetat.h"
+#include "calculerangles.h"
+#include "controleurPID.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
 
 ControleurMoteurs *g_pt_ControleurMoteurs = nullptr;
+ClassCalculerAngles *g_pt_CalculateurAngles = nullptr;
+ControleurPID *g_pt_ControleurPID = nullptr;
 
 QueueHandle_t g_pt_queue = nullptr;
 
@@ -59,6 +63,12 @@ void setup()
 
   initServeurSerial(&g_pt_queue);
 
+  // Création du calculateur d'angles
+  g_pt_CalculateurAngles = new ClassCalculerAngles;
+
+  // Création du correcteur PID
+  g_pt_ControleurPID = new ControleurPID;
+
 // Création du module de controle Moteurs
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
       e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
@@ -76,8 +86,8 @@ void setup()
 void loop()
 {
   std::string *l_pt_stringRxUdp = nullptr;
-  uint32_t u32_TempsUsCourant;
-  static uint32_t u32_TempsUsPrecedent;
+  uint32_t l_u32_TempsUsCourant;
+  static uint32_t l_u32_TempsUsPrecedent;
 
   if (xQueueReceive(g_pt_queue, &l_pt_stringRxUdp, 0) == pdTRUE)
   {
@@ -134,21 +144,64 @@ void loop()
   }
   else if (MachineEtat::retourneInstance()->retourneEtatInterne() == enum_Etats::ARME)
   {
-    u32_TempsUsCourant = micros();
+    l_u32_TempsUsCourant = micros();
 
     // Gestion de l'overflow de micros()
-    if (u32_TempsUsCourant < u32_TempsUsPrecedent)
+    if (l_u32_TempsUsCourant < l_u32_TempsUsPrecedent)
     {
-      u32_TempsUsPrecedent = u32_TempsUsCourant;
+      l_u32_TempsUsPrecedent = l_u32_TempsUsCourant;
       SEND_VTRACE(INFO, "OverFlow micros()");
     }
 
-    if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 1000000)
+    if (l_u32_TempsUsCourant >= (l_u32_TempsUsPrecedent + 4000))
     {
-      u32_TempsUsPrecedent = u32_TempsUsCourant;
+      static uint8_t l_u8_tempoTraces = 0;
 
-      SEND_VTRACE(INFO, "Top !");
+      float l_tf_mesures[e_ListeMouvements_t::NbreMouvements];
+      float l_tf_DeplacementsAngulaires[e_ListeMouvements_t::NbreMouvements];
 
+      uint16_t l_u16_MoteurAvG = 0;
+      uint16_t l_u16_MoteurAvD = 0;
+      uint16_t l_u16_MoteurArG = 0;
+      uint16_t l_u16_MoteurArD = 0;
+
+      l_u32_TempsUsPrecedent = l_u32_TempsUsCourant;
+
+      g_pt_CalculateurAngles->NouvellesValeursMPU6050();
+
+      g_pt_CalculateurAngles->CalculerAngles();
+
+      g_pt_CalculateurAngles->DonnerMesures(l_tf_mesures);
+      g_pt_CalculateurAngles->DonnerDeplacementsAngulaires(l_tf_DeplacementsAngulaires);
+
+      g_pt_ControleurPID->NouvellesValeursMesures(l_tf_mesures[e_ListeMouvements_t::Yaw],
+          l_tf_mesures[e_ListeMouvements_t::Pitch], l_tf_mesures[e_ListeMouvements_t::Roll]);
+
+      g_pt_ControleurPID->NouvellesValeursMouvementsAngulaires(
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Yaw],
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Pitch],
+          l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll]);
+
+      g_pt_ControleurPID->RecupererNouvellesConsignesMoteurs(l_u16_MoteurAvG, l_u16_MoteurAvD,
+          l_u16_MoteurArG, l_u16_MoteurArD);
+
+      if (l_u8_tempoTraces != 0)
+      {
+        l_u8_tempoTraces--;
+      }
+      else
+      {
+        l_u8_tempoTraces = 40;
+
+        SEND_VTRACE(INFO,
+            "Depl Yaw: %4.3f - Depl Pitch: %4.3f - Depl Roll: %4.3f Mes Yaw: %4.3f - Mes Pitch: %4.3f - Mes Roll: %4.3f",
+            l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Yaw],
+            l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Pitch],
+            l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll],
+            l_tf_mesures[e_ListeMouvements_t::Yaw], l_tf_mesures[e_ListeMouvements_t::Pitch],
+            l_tf_mesures[e_ListeMouvements_t::Roll]);
+      }
     }
+
   }
 }
