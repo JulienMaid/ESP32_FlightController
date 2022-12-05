@@ -39,3 +39,7 @@ void DemarrerServeurOTA(const String &pm_Texte)
   server.begin();
 }
 
+void StopperServeurOTA(void)
+{
+  server.end();
+}
