@@ -12,6 +12,7 @@
 #include "controleurMoteursFactory.h"
 #include "LecturePulseCmd.h"
 #include "machineetat.h"
+#include "actionmachineetat.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -39,6 +40,11 @@ void setup()
   SEND_VTRACE(INFO, g_t_MsgDemarrage.c_str());
 
   SEND_VTRACE(INFO, "Connection Wifi: %d", l_b_WifiConnected);
+
+  MachineEtat::retourneInstance()->reglerActionEtat(enum_Etats::ARME, ActionArmement);
+  MachineEtat::retourneInstance()->reglerActionEtat(enum_Etats::ATTENTE_ARMEMENT,
+      ActionDesarmement);
+  MachineEtat::retourneInstance()->reglerActionEtat(enum_Etats::ARRET_URGENCE, ActionArretUrgence);
 
   // Demarrage du service de mise à jour OTA
   if (l_b_WifiConnected == true)
@@ -115,6 +121,11 @@ void loop()
   {
     MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ATTENTE_ARMEMENT,
         enum_Etats::ARME);
+  }
+  else if (g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie5] < 1400)
+  {
+    MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ARME,
+        enum_Etats::ATTENTE_ARMEMENT);
   }
 
   if (MachineEtat::retourneInstance()->retourneEtatInterne() == enum_Etats::ARRET_URGENCE)
