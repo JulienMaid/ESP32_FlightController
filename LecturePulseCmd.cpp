@@ -7,7 +7,7 @@ e_EtatsVoie_t g_te_EtatVoies[e_NumeroVoie_t::Nombre_Voies];
 uint8_t g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Nombre_Voies];
 
 void InitPortCmd(uint8_t i_u8_portVoie1, uint8_t i_u8_portVoie2, uint8_t i_u8_portVoie3,
-    uint8_t i_u8_portVoie4)
+    uint8_t i_u8_portVoie4, uint8_t i_u8_portVoie5, uint8_t i_u8_portVoie6)
 {
   for (auto i = 0; i < e_NumeroVoie_t::Nombre_Voies; i++)
   {
@@ -20,18 +20,25 @@ void InitPortCmd(uint8_t i_u8_portVoie1, uint8_t i_u8_portVoie2, uint8_t i_u8_po
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie2] = i_u8_portVoie2;
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie3] = i_u8_portVoie3;
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie4] = i_u8_portVoie4;
+  g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie5] = i_u8_portVoie5;
+  g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie6] = i_u8_portVoie6;
 
   pinMode(i_u8_portVoie1, INPUT_PULLDOWN);
   pinMode(i_u8_portVoie2, INPUT_PULLDOWN);
   pinMode(i_u8_portVoie3, INPUT_PULLDOWN);
   pinMode(i_u8_portVoie4, INPUT_PULLDOWN);
+  pinMode(i_u8_portVoie5, INPUT_PULLDOWN);
+  pinMode(i_u8_portVoie6, INPUT_PULLDOWN);
   attachInterrupt(i_u8_portVoie1, ISR_ImpulsionCmdVoie1, CHANGE);
   attachInterrupt(i_u8_portVoie2, ISR_ImpulsionCmdVoie2, CHANGE);
   attachInterrupt(i_u8_portVoie3, ISR_ImpulsionCmdVoie3, CHANGE);
   attachInterrupt(i_u8_portVoie4, ISR_ImpulsionCmdVoie4, CHANGE);
+  attachInterrupt(i_u8_portVoie5, ISR_ImpulsionCmdVoie4, CHANGE);
+  attachInterrupt(i_u8_portVoie6, ISR_ImpulsionCmdVoie4, CHANGE);
 
-  SEND_VTRACE(INFO, "Voie1: %d, Voie2: %d, Voie3:%d, Voie4: %d", i_u8_portVoie1, i_u8_portVoie2,
-      i_u8_portVoie3, i_u8_portVoie4);
+  SEND_VTRACE(INFO, "Voie1: %d, Voie2: %d, Voie3:%d, Voie4: %d, Voie5: %d, Voie6: %d",
+      i_u8_portVoie1, i_u8_portVoie2, i_u8_portVoie3, i_u8_portVoie4, i_u8_portVoie5,
+      i_u8_portVoie6);
 }
 
 void IRAM_ATTR ISR_ImpulsionCmdVoie1(void)
@@ -52,6 +59,16 @@ void IRAM_ATTR ISR_ImpulsionCmdVoie3(void)
 void IRAM_ATTR ISR_ImpulsionCmdVoie4(void)
 {
   GestionPortCmd(e_NumeroVoie_t::Voie4);
+}
+
+void IRAM_ATTR ISR_ImpulsionCmdVoie5(void)
+{
+  GestionPortCmd(e_NumeroVoie_t::Voie5);
+}
+
+void IRAM_ATTR ISR_ImpulsionCmdVoie6(void)
+{
+  GestionPortCmd(e_NumeroVoie_t::Voie6);
 }
 
 void GestionPortCmd(e_NumeroVoie_t i_e_NumeroVoie)

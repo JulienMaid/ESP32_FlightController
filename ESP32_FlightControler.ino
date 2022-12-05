@@ -11,6 +11,7 @@
 #include "serveurSerial.h"
 #include "controleurMoteursFactory.h"
 #include "LecturePulseCmd.h"
+#include "machineetat.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -52,14 +53,16 @@ void setup()
 
   initServeurSerial(&g_pt_queue);
 
-//  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-
 // Création du module de controle Moteurs
-//  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-//      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
+  g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
+      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
+  g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(0, 0, 0, 0);
 
 // Initialisation du décodage des signaux issues du recepteur Radio
 //  InitPortCmd(34, 35, 36, 39);
+
+  MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::DEMARRAGE,
+      enum_Etats::ATTENTE_ARMEMENT);
 
 }
 
@@ -77,6 +80,7 @@ void loop()
 
     std::stringstream l_t_Stream(l_t_localMsg);
     std::string l_t_Arg1;
+    std::string l_t_Reponse;
 
     SEND_VTRACE(INFO, "Core %d; RX dans loop: %s", xPortGetCoreID(), l_t_localMsg.c_str());
 
@@ -84,41 +88,56 @@ void loop()
 
     if (l_t_Arg1 == "Traces")
     {
-      DecodeOrdreConfigOrdre(l_t_Stream);
+      DecodeOrdreConfigOrdre(l_t_Stream, l_t_Reponse);
     }
     else
     {
       if (l_t_Arg1 == "OFF")
       {
         SEND_VTRACE(INFO, "Moteurs OFF");
+        MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ARME,
+            enum_Etats::ARRET_URGENCE);
+
       }
       else if (l_t_Arg1 == "ON")
       {
 
         uint16_t u16_Val = 0;
         sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
-
         SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
-
+        MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ATTENTE_ARMEMENT,
+            enum_Etats::ARME);
       }
     }
   }
 
-  u32_TempsUsCourant = micros();
-
-  // Gestion de l'overflow de micros()
-  if (u32_TempsUsCourant < u32_TempsUsPrecedent)
+  if (g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie5] > 1600)
   {
-    u32_TempsUsPrecedent = u32_TempsUsCourant;
-    SEND_VTRACE(INFO, "OverFlow micros()");
+    MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ATTENTE_ARMEMENT,
+        enum_Etats::ARME);
   }
 
-  if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 1000000)
+  if (MachineEtat::retourneInstance()->retourneEtatInterne() == enum_Etats::ARRET_URGENCE)
   {
-    u32_TempsUsPrecedent = u32_TempsUsCourant;
-
-    SEND_VTRACE(INFO, "Top !");
-
+    g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(0, 0, 0, 0);
   }
+  else if (MachineEtat::retourneInstance()->retourneEtatInterne() == enum_Etats::ARME)
+  {
+    u32_TempsUsCourant = micros();
 
+    // Gestion de l'overflow de micros()
+    if (u32_TempsUsCourant < u32_TempsUsPrecedent)
+    {
+      u32_TempsUsPrecedent = u32_TempsUsCourant;
+      SEND_VTRACE(INFO, "OverFlow micros()");
+    }
+
+    if ((u32_TempsUsCourant - u32_TempsUsPrecedent) >= 1000000)
+    {
+      u32_TempsUsPrecedent = u32_TempsUsCourant;
+
+      SEND_VTRACE(INFO, "Top !");
+
+    }
+  }
 }
