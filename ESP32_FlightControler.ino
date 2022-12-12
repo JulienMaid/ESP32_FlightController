@@ -121,6 +121,9 @@ void loop()
         uint16_t u16_Val = 0;
         sscanf((const char*) l_t_localMsg.c_str(), "ON %d", &u16_Val);
         SEND_VTRACE(INFO, "Valeur Moteur = %d %", u16_Val);
+
+        g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie3] = map(u16_Val, 0, 100, 1000, 2000);
+
         MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ATTENTE_ARMEMENT,
             enum_Etats::ARME);
       }
@@ -181,6 +184,11 @@ void loop()
           l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Yaw],
           l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Pitch],
           l_tf_DeplacementsAngulaires[e_ListeMouvements_t::Roll]);
+
+      g_pt_ControleurPID->NouvellesValeursCommandes(g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie1],
+          g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie2],
+          g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie3],
+          g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie4]);
 
       g_pt_ControleurPID->RecupererNouvellesConsignesMoteurs(l_u16_MoteurAvG, l_u16_MoteurAvD,
           l_u16_MoteurArG, l_u16_MoteurArD);

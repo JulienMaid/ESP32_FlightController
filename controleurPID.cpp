@@ -7,7 +7,12 @@
 
 #include "controleurPID.h"
 
-ControleurPID::ControleurPID()
+ControleurPID::ControleurPID() :
+    m_u32_Yaw(m_u32_impulsionMediane), m_u32_Pitch(m_u32_impulsionMediane), m_u32_Roll(
+        m_u32_impulsionMediane), m_u32_Throttle(m_u32_impulsionMediane), m_u32_ImpulsionEsc1(
+        m_u32_impulsionMini), m_u32_ImpulsionEsc2(m_u32_impulsionMini), m_u32_ImpulsionEsc3(
+        m_u32_impulsionMini), m_u32_ImpulsionEsc4(m_u32_impulsionMini)
+
 {
   ConfigurerCorrespondanceVoies();
 

@@ -62,10 +62,10 @@ private:
   uint32_t m_u32_Roll;
   uint32_t m_u32_Throttle;
 
-  uint32_t m_u32_ImpulsionEsc1 = 1000;
-  uint32_t m_u32_ImpulsionEsc2 = 1000;
-  uint32_t m_u32_ImpulsionEsc3 = 1000;
-  uint32_t m_u32_ImpulsionEsc4 = 1000;
+  uint32_t m_u32_ImpulsionEsc1;
+  uint32_t m_u32_ImpulsionEsc2;
+  uint32_t m_u32_ImpulsionEsc3;
+  uint32_t m_u32_ImpulsionEsc4;
 
   uint32_t *m_tu32_CorrespondanceVoies[e_ListeMouvements_t::NbreMouvements];
 
