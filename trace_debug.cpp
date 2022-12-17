@@ -93,6 +93,7 @@ void Init_Trace_Debug(bool i_b_TracesSerie, bool i_b_TracesUDP, std::string i_t_
   g_pt_queueTraces = xQueueCreate(10, sizeof(std::string*));
 
   xTaskCreatePinnedToCore(ThreadTxTrace, "ThreadTxTrace", 4000, NULL, 2, &xHandle, 0);
+#endif
 
   g_b_TracesSerie = i_b_TracesSerie;
   g_b_TracesUDP = i_b_TracesUDP;
@@ -103,7 +104,7 @@ void Init_Trace_Debug(bool i_b_TracesSerie, bool i_b_TracesUDP, std::string i_t_
     g_t_IPDestTracesUDP = i_t_IPTracesUDP;
     g_u16_PortDestUdp = i_u16_PortDestTracesUDP;
   }
-#endif
+
 }
 
 const char* Get_Text_Type_Trace(e_type_trace_t Type_Trace)
@@ -280,13 +281,13 @@ uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps
 
 #else
 
-  if (g_b_TraceUDP == true)
+  if (g_b_TracesUDP == true)
   {
     WiFiUDP l_t_udp;
     uint8_t u8_retourFct;
     std::string l_t_localMsg;
 
-    l_t_udp.beginPacket(g_t_adresseIpServeur.c_str(), g_u16_PortDestUdp);
+    l_t_udp.beginPacket(g_t_IPDestTracesUDP.c_str(), g_u16_PortDestUdp);
     l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
     u8_retourFct = l_t_udp.endPacket();
 
@@ -296,14 +297,14 @@ uint8_t Send_VTrace(e_type_trace_t Type_Trace, bool Horodatage, const char *i_ps
       delay(10);
       const unsigned char tu8_buff[] = "2nd...";
 
-      l_t_udp.beginPacket(g_t_adresseIpServeur.c_str(), g_u16_PortDestUdp);
+      l_t_udp.beginPacket(g_t_IPDestTracesUDP.c_str(), g_u16_PortDestUdp);
       l_t_udp.write(tu8_buff, sizeof(tu8_buff) - 1);
       l_t_udp.write((const uint8_t*) l_t_localMsg.c_str(), l_t_localMsg.size());
       l_t_udp.endPacket();
     }
 
   }
-  if (g_b_TraceSerie == true)
+  if (g_b_TracesSerie == true)
   {
     Serial.println(ts8_BufferTxString);
   }
