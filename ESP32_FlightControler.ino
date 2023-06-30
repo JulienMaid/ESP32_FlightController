@@ -15,6 +15,7 @@
 #include "actionmachineetat.h"
 #include "calculerangles.h"
 #include "controleurPID.h"
+#include "ES_CI_Proto.h"
 
 Ticker g_t_blinker;
 String g_t_MsgDemarrage("ESP32 Flight controller");
@@ -66,16 +67,21 @@ void setup()
   // Création du calculateur d'angles
   g_pt_CalculateurAngles = new ClassCalculerAngles;
 
+  if (g_pt_CalculateurAngles->Init() != 0)
+  {
+    SEND_VTRACE(ERROR, "Erreur Intialisation Gyro/Accéléro");
+  }
+
   // Création du correcteur PID
   g_pt_ControleurPID = new ControleurPID;
 
 // Création du module de controle Moteurs
   g_pt_ControleurMoteurs = ControleurMoteurFactory::recupererControleurMoteur(
-      e_typeMoteur_t::MOTEUR_BRUSHLESS, 2, 4, 16, 17);
+      e_typeMoteur_t::MOTEUR_BRUSHLESS, ESC1, ESC2, ESC3, ESC4);
   g_pt_ControleurMoteurs->FixerNouvellesConsignePourMille(0, 0, 0, 0);
 
 // Initialisation du décodage des signaux issues du recepteur Radio
-//  InitPortCmd(34, 35, 36, 39);
+  InitPortCmd(Entree1, Entree2, Entree3, Entree4);
 
   MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::DEMARRAGE,
       enum_Etats::ATTENTE_ARMEMENT);
@@ -130,6 +136,7 @@ void loop()
     }
   }
 
+#if 0
   if (g_tu32_ImpulsionVoies[e_NumeroVoie_t::Voie5] > 1600)
   {
     MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ATTENTE_ARMEMENT,
@@ -140,6 +147,7 @@ void loop()
     MachineEtat::retourneInstance()->transtionEtatversEtat(enum_Etats::ARME,
         enum_Etats::ATTENTE_ARMEMENT);
   }
+#endif
 
   if (MachineEtat::retourneInstance()->retourneEtatInterne() == enum_Etats::ARRET_URGENCE)
   {
@@ -156,7 +164,7 @@ void loop()
       SEND_VTRACE(INFO, "OverFlow micros()");
     }
 
-    if (l_u32_TempsUsCourant >= (l_u32_TempsUsPrecedent + 4000))
+    if (0) // (l_u32_TempsUsCourant >= (l_u32_TempsUsPrecedent + 4000))
     {
       static uint8_t l_u8_tempoTraces = 0;
 
@@ -170,7 +178,10 @@ void loop()
 
       l_u32_TempsUsPrecedent = l_u32_TempsUsCourant;
 
-      g_pt_CalculateurAngles->NouvellesValeursMPU6050();
+      if (g_pt_CalculateurAngles->NouvellesValeursMPU6050() != 0)
+      {
+        SEND_VTRACE(ERROR, "Erreur Lecture MPU6050");
+      }
 
       g_pt_CalculateurAngles->CalculerAngles();
 

@@ -21,8 +21,10 @@ public:
   ClassCalculerAngles& operator=(const ClassCalculerAngles &other) = delete;
   ClassCalculerAngles& operator=(ClassCalculerAngles &&other) = delete;
 
-  void NouvellesValeursMPU6050();
-  void ValeursOffsetGyroMPU6050();
+  uint8_t Init();
+
+  uint8_t NouvellesValeursMPU6050();
+  uint8_t ValeursOffsetGyroMPU6050();
 
   void NouvellesValeurs(int16_t *i_ps16_AccRAW, int16_t *i_ps16_GyroRAW);
   void ValeursOffsetGyro(int16_t *i_ps16_GyroOffset);

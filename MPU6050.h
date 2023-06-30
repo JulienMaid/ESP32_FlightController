@@ -14,8 +14,8 @@
 
 void setupMpu6050Registers();
 
-void calibrateMpu6050(int16_t *o_ts16_gyroOffset);
+uint8_t calibrateMpu6050(int16_t *o_ts16_gyroOffset);
 
-void readSensor(int16_t *o_ts16_accRaw, int16_t *o_ts16_gyroRaw);
+uint8_t readSensor(int16_t *o_ts16_accRaw, int16_t *o_ts16_gyroRaw);
 
 #endif /* MPU6050_H_ */

@@ -8,6 +8,8 @@ uint8_t initServeurSerial(QueueHandle_t *i_ppt_queue)
 {
   uint8_t u8_CR = -1;
 
+  SEND_VTRACE(INFO, "Ecoute sur Serial");
+
   if (*i_ppt_queue == nullptr)
   {
     *i_ppt_queue = xQueueCreate(10, sizeof(std::string*));
