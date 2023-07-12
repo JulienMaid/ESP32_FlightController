@@ -23,12 +23,12 @@ void InitPortCmd(uint8_t i_u8_portVoie1, uint8_t i_u8_portVoie2, uint8_t i_u8_po
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie5] = i_u8_portVoie5;
   g_tu8_CorrespondanceNumeroVoies[e_NumeroVoie_t::Voie6] = i_u8_portVoie6;
 
-  pinMode(i_u8_portVoie1, INPUT_PULLDOWN);
-  pinMode(i_u8_portVoie2, INPUT_PULLDOWN);
-  pinMode(i_u8_portVoie3, INPUT_PULLDOWN);
-  pinMode(i_u8_portVoie4, INPUT_PULLDOWN);
-  pinMode(i_u8_portVoie5, INPUT_PULLDOWN);
-  pinMode(i_u8_portVoie6, INPUT_PULLDOWN);
+  pinMode(i_u8_portVoie1, INPUT);
+  pinMode(i_u8_portVoie2, INPUT);
+  pinMode(i_u8_portVoie3, INPUT);
+  pinMode(i_u8_portVoie4, INPUT);
+  pinMode(i_u8_portVoie5, INPUT);
+  pinMode(i_u8_portVoie6, INPUT);
   attachInterrupt(i_u8_portVoie1, ISR_ImpulsionCmdVoie1, CHANGE);
   attachInterrupt(i_u8_portVoie2, ISR_ImpulsionCmdVoie2, CHANGE);
   attachInterrupt(i_u8_portVoie3, ISR_ImpulsionCmdVoie3, CHANGE);
@@ -74,6 +74,8 @@ void IRAM_ATTR ISR_ImpulsionCmdVoie6(void)
 void GestionPortCmd(e_NumeroVoie_t i_e_NumeroVoie)
 {
   uint32_t l_u32_tempsInit = micros();
+
+  SEND_VTRACE(DBG1, "Voie %d", i_e_NumeroVoie);
 
   if (digitalRead(g_tu8_CorrespondanceNumeroVoies[i_e_NumeroVoie]) == HIGH)
   {

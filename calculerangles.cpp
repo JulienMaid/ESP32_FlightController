@@ -14,14 +14,28 @@
 
 ClassCalculerAngles::ClassCalculerAngles()
 {
+
+}
+
+uint8_t ClassCalculerAngles::Init()
+{
   SEND_VTRACE(INFO, "Configuration MPU6050");
   setupMpu6050Registers();
 
   SEND_VTRACE(INFO, "Calibration MPU6050...");
-  ValeursOffsetGyroMPU6050();
-  SEND_VTRACE(INFO, "Calibration MPU6050 Faite");
-  SEND_VTRACE(INFO, "Offset Gyro: X:%d Y:%d Z:%d", m_ts16_GyroOffset[e_RepereOrthonormal_t::X],
-      m_ts16_GyroOffset[e_RepereOrthonormal_t::Y], m_ts16_GyroOffset[e_RepereOrthonormal_t::Z]);
+  if (ValeursOffsetGyroMPU6050() == 0)
+  {
+    SEND_VTRACE(INFO, "Calibration MPU6050 Faite");
+    SEND_VTRACE(INFO, "Offset Gyro: X:%d Y:%d Z:%d", m_ts16_GyroOffset[e_RepereOrthonormal_t::X],
+        m_ts16_GyroOffset[e_RepereOrthonormal_t::Y], m_ts16_GyroOffset[e_RepereOrthonormal_t::Z]);
+  }
+  else
+  {
+    SEND_VTRACE(ERROR, "Erreur Calibration MPU6050");
+    return 1;
+  }
+
+  return 0;
 }
 
 ClassCalculerAngles::~ClassCalculerAngles()
@@ -152,12 +166,12 @@ void ClassCalculerAngles::DonnerMesures(float *o_pf_Mesures)
   memcpy(o_pf_Mesures, m_tf_Mesures, sizeof(m_tf_Mesures));
 }
 
-void ClassCalculerAngles::NouvellesValeursMPU6050()
+uint8_t ClassCalculerAngles::NouvellesValeursMPU6050()
 {
-  readSensor(m_ts16_AccRAW, m_ts16_GyroRAW);
+  return readSensor(m_ts16_AccRAW, m_ts16_GyroRAW);
 }
 
-void ClassCalculerAngles::ValeursOffsetGyroMPU6050()
+uint8_t ClassCalculerAngles::ValeursOffsetGyroMPU6050()
 {
-  calibrateMpu6050(m_ts16_GyroOffset);
+  return calibrateMpu6050(m_ts16_GyroOffset);
 }
