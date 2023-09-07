@@ -14,7 +14,8 @@
 
 ClassCalculerAngles::ClassCalculerAngles()
 {
-
+  m_pt_ReAssignationAxes = new AssignationAxes(m_ti16_CorrectionAxeX, m_ti16_CorrectionAxeY,
+      m_ti16_CorrectionAxeZ);
 }
 
 uint8_t ClassCalculerAngles::Init()
@@ -40,7 +41,10 @@ uint8_t ClassCalculerAngles::Init()
 
 ClassCalculerAngles::~ClassCalculerAngles()
 {
-  // TODO Auto-generated destructor stub
+  if (m_pt_ReAssignationAxes != nullptr)
+  {
+    delete m_pt_ReAssignationAxes;
+  }
 }
 
 void ClassCalculerAngles::NouvellesValeurs(int16_t *i_ps16_AccRAW, int16_t *i_ps16_GyroRAW)
@@ -168,10 +172,32 @@ void ClassCalculerAngles::DonnerMesures(float *o_pf_Mesures)
 
 uint8_t ClassCalculerAngles::NouvellesValeursMPU6050()
 {
-  return readSensor(m_ts16_AccRAW, m_ts16_GyroRAW);
+  uint8_t l_u8_cr = 0xff;
+  int16_t l_ts16_AccRAW[3] = { 0 };
+  int16_t l_ts16_GyroRAW[3] = { 0 };
+
+  l_u8_cr = readSensor(l_ts16_AccRAW, l_ts16_GyroRAW);
+
+  if (l_u8_cr == 0)
+  {
+    m_pt_ReAssignationAxes->ReAssignation(l_ts16_AccRAW, m_ts16_AccRAW);
+    m_pt_ReAssignationAxes->ReAssignation(l_ts16_GyroRAW, m_ts16_GyroRAW);
+  }
+
+  return l_u8_cr;
 }
 
 uint8_t ClassCalculerAngles::ValeursOffsetGyroMPU6050()
 {
-  return calibrateMpu6050(m_ts16_GyroOffset);
+  uint8_t l_u8_cr = 0xff;
+  int16_t l_ts16_GyroOffset[3] = { 0 };
+
+  l_u8_cr = calibrateMpu6050(l_ts16_GyroOffset);
+
+  if (l_u8_cr == 0)
+  {
+    m_pt_ReAssignationAxes->ReAssignation(l_ts16_GyroOffset, m_ts16_GyroOffset);
+  }
+
+  return l_u8_cr;
 }

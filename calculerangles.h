@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include "ConstantesPID.h"
+#include "assignationaxes.h"
 
 class ClassCalculerAngles
 {
@@ -63,6 +64,12 @@ private:
   static constexpr float m_f_PI = 3.1415927;
   static constexpr float m_f_Frequence = 250.0;
   static constexpr float m_f_SSF_GYRO = 65.5;
+
+  AssignationAxes *m_pt_ReAssignationAxes = nullptr;
+
+  int16_t m_ti16_CorrectionAxeX[3] = { 1, 0, 0 };
+  int16_t m_ti16_CorrectionAxeY[3] = { 0, 1, 0 };
+  int16_t m_ti16_CorrectionAxeZ[3] = { 0, 0, 1 };
 
 };
 
